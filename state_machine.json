@@ -1,11 +1,10 @@
 {
-    "name" : "Example",
+    "name" : "ExampleStateMachine",
     
     "states" : [
         "name_1",
         {
-            "name" : "Nested",
-            "nested_to" : "name_1",
+            "name" : "Nested_sm",
             "sub-states":[
                 "nested_name_1",
                 "nested_name_2"
@@ -29,7 +28,7 @@
         {
             "from_state" : "name_1",
             "to_state" : {
-                "name" : "Nested",
+                "name" : "Nested_sm",
                 "sub-state" : "nested_name_1"
             },
             "transition_name": "from_1_to_nested_1"
@@ -77,7 +76,7 @@
                     "states" : [
                         "name_1",
                         {
-                            "name" : "Nested",
+                            "name" : "Nested_sm",
                             "sub-state" : "nested_name_1"
                         }
                     ],
@@ -109,7 +108,7 @@
         "exit" : [
             {
                 "state" : {
-                    "name" : "Nested",
+                    "name" : "Nested_sm",
                     "sub-state" : "nested_name_2"
                 },
                 "state_actions" : [
