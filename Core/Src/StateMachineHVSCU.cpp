@@ -4,7 +4,7 @@
 #include "HVSCUComms.hpp"
 
 namespace HVSCU {
-StateMachine* sm = nullptr;
+StateMachine* SM::sm = nullptr;
 
 SM::SM() {
     sm = new StateMachine(0);
