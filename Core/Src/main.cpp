@@ -5,16 +5,15 @@
 #endif
 
 #include "ST-LIB.hpp"
+#include "HVSCUComms.hpp"
+#include "StateMachineHVSCU.hpp"
 
 int main(void) {
 #ifdef SIM_ON
-    SharedMemory::start();
+    SharedMemory::start("shm_gpio_HVSCU", "shm_sm_HVSCU");
 #endif
-
-    DigitalOutput led_on(PA1);
-    STLIB::start();
-
-    Time::register_low_precision_alarm(100, [&]() { led_on.toggle(); });
+    STLIB::start(HVSCUComms::HVSCU_IP);
+    StateMachineHVSCU* sm = new StateMachineHVSCU();
 
     while (1) {
         STLIB::update();
