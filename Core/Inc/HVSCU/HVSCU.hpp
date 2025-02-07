@@ -13,6 +13,7 @@ class HVSCU {
    public:
     DigitalOutput led_operational;
     DigitalOutput led_fault;
+    DigitalOutput sdc_obccu;
     HVSCU();
     void open_contactors();
     void close_contactors();
