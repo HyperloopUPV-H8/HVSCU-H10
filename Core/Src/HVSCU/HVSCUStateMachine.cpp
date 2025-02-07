@@ -48,6 +48,13 @@ void HVSCUStateMachine::check_close_contactors_order() {
     }
 }
 
+void HVSCUStateMachine::check_sdc_obbcu_order() {
+    if (Comms::sdc_obccu_order_received) {
+        hvscu.sdc_obccu.toggle();
+        Comms::sdc_obccu_order_received = false;
+    }
+}
+
 void HVSCUStateMachine::update() {
     sm.check_transitions();
     switch (sm.current_state) {

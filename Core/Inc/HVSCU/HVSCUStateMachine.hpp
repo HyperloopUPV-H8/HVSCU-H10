@@ -14,6 +14,7 @@ class HVSCUStateMachine {
     void add_transitions();
     void check_open_contactors_order();
     void check_close_contactors_order();
+    void check_sdc_obbcu_order();
 
    public:
     HVSCUStateMachine();
