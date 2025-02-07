@@ -18,7 +18,20 @@ void HVSCUStateMachine::add_transitions() {
                       []() { return Comms::control_station->is_connected(); });
     sm.add_transition(State::OPERATIONAL, State::FAULT,
                       []() { return !Comms::control_station->is_connected(); });
-    sm.add_enter_action([this]() { hvscu.open_contactors(); }, State::FAULT);
+
+    sm.add_enter_action(
+        [this]() {
+            hvscu.open_contactors();
+            hvscu.led_fault.turn_on();
+        },
+        State::FAULT);
+
+    sm.add_low_precision_cyclic_action(
+        [this]() { hvscu.led_operational.toggle(); },
+        std::chrono::duration<int64_t, std::milli>(500), State::CONNECTING);
+
+    sm.add_enter_action([this]() { hvscu.led_operational.turn_on(); },
+                        State::OPERATIONAL);
 }
 
 void HVSCUStateMachine::check_open_contactors_order() {

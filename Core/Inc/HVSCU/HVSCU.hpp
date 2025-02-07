@@ -1,4 +1,5 @@
 #include "HVSCU/Contactor.hpp"
+#include "ST-LIB.hpp"
 
 class HVSCU {
    private:
@@ -10,6 +11,8 @@ class HVSCU {
     uint8_t timeout_id;
 
    public:
+    DigitalOutput led_operational;
+    DigitalOutput led_fault;
     HVSCU();
     void open_contactors();
     void close_contactors();

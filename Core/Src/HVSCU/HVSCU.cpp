@@ -4,7 +4,9 @@ HVSCU::HVSCU()
     : low(DigitalOutput(PG14), true),
       high(DigitalOutput(PG12), true),
       precharge(DigitalOutput(PD4), true),
-      discharge(DigitalOutput(PF4), false) {}
+      discharge(DigitalOutput(PF4), false),
+      led_operational(PG8),
+      led_fault(PG7) {}
 
 void HVSCU::open_contactors() {
     if (timeout_id) Time::cancel_timeout(timeout_id);
