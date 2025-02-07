@@ -4,22 +4,23 @@
 #include "lwip.h"
 #endif
 
-#include "HVSCUComms.hpp"
+#include "HVSCU/Comms.hpp"
+#include "HVSCU/HVSCUStateMachine.hpp"
 #include "ST-LIB.hpp"
-#include "StateMachineHVSCU.hpp"
-
-using namespace HVSCU;
 
 int main(void) {
 #ifdef SIM_ON
     SharedMemory::start("shm_gpio_HVSCU", "shm_sm_HVSCU");
 #endif
+    DigitalOutput imd_bypass(PF5);
+    HVSCUStateMachine state_machine = HVSCUStateMachine();
     STLIB::start(Comms::HVSCU_IP);
-    SM sm{};
+    Comms::start();
 
+    imd_bypass.turn_on();
     while (1) {
         STLIB::update();
-        sm.update();
+        state_machine.update();
     }
 }
 

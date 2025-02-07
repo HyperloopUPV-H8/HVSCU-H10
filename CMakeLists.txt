@@ -1,6 +1,6 @@
 cmake_minimum_required (VERSION 3.14)
 
-project (template-project ASM C CXX)
+project (HVSCU ASM C CXX)
 set(EXECUTABLE ${PROJECT_NAME}.elf)
 set(STLIB_DIR ${CMAKE_CURRENT_LIST_DIR}/deps/ST-LIB)
 
