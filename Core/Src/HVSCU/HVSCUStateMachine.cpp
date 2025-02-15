@@ -22,37 +22,16 @@ void HVSCUStateMachine::add_transitions() {
     sm.add_enter_action(
         [this]() {
             hvscu.open_contactors();
-            hvscu.led_fault.turn_on();
+            HVSCU::led_fault->turn_on();
         },
         State::FAULT);
 
     sm.add_low_precision_cyclic_action(
-        [this]() { hvscu.led_operational.toggle(); },
+        [this]() { HVSCU::led_operational->toggle(); },
         std::chrono::duration<int64_t, std::milli>(500), State::CONNECTING);
 
-    sm.add_enter_action([this]() { hvscu.led_operational.turn_on(); },
+    sm.add_enter_action([this]() { HVSCU::led_operational->turn_on(); },
                         State::OPERATIONAL);
-}
-
-void HVSCUStateMachine::check_open_contactors_order() {
-    if (Comms::open_contactors_order_received) {
-        hvscu.open_contactors();
-        Comms::open_contactors_order_received = false;
-    }
-}
-
-void HVSCUStateMachine::check_close_contactors_order() {
-    if (Comms::close_contactors_order_received) {
-        hvscu.close_contactors();
-        Comms::close_contactors_order_received = false;
-    }
-}
-
-void HVSCUStateMachine::check_sdc_obbcu_order() {
-    if (Comms::sdc_obccu_order_received) {
-        hvscu.sdc_obccu.toggle();
-        Comms::sdc_obccu_order_received = false;
-    }
 }
 
 void HVSCUStateMachine::update() {
@@ -61,6 +40,7 @@ void HVSCUStateMachine::update() {
         case State::CONNECTING:
             break;
         case State::OPERATIONAL:
+            check_sdc_obbcu_order();
             check_open_contactors_order();
             check_close_contactors_order();
             break;

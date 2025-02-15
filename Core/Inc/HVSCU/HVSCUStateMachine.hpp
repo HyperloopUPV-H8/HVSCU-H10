@@ -1,12 +1,11 @@
 #pragma once
 
-#include "ST-LIB.hpp"
 #include "HVSCU/Contactor.hpp"
 #include "HVSCU/HVSCU.hpp"
+#include "ST-LIB.hpp"
 
 class HVSCUStateMachine {
    private:
-    enum State { CONNECTING = 0, OPERATIONAL = 1, FAULT = 2 };
     StateMachine sm;
     HVSCU hvscu;
 
@@ -17,6 +16,8 @@ class HVSCUStateMachine {
     void check_sdc_obbcu_order();
 
    public:
+    enum State { CONNECTING = 0, OPERATIONAL = 1, FAULT = 2 };
+
     HVSCUStateMachine();
     void update();
 };
