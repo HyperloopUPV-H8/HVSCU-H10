@@ -1,24 +1,25 @@
 #include "HVSCU/Comms.hpp"
 
+#include "HVSCU/HVSCU.hpp"
+
 ServerSocket* Comms::control_station = nullptr;
-bool Comms::open_contactors_order_received = false;
-bool Comms::close_contactors_order_received = false;
-bool Comms::sdc_obccu_order_received = false;
-HeapOrder *Comms::open_contactors_order = nullptr;
-HeapOrder *Comms::close_contactors_order = nullptr;
-HeapOrder *Comms::sdc_obccu_order = nullptr;
+std::vector<HVSCUOrder> orders;
 
 void Comms::start() {
     control_station = new ServerSocket(IPV4(HVSCU_IP), CONTROL_STATION_PORT);
-    open_contactors_order = new HeapOrder(OPEN_CONTACTORS_ID, []() {
-        Comms::open_contactors_order_received = true;
-    });
 
-    close_contactors_order = new HeapOrder(CLOSE_CONTACTORS_ID, []() {
-        Comms::close_contactors_order_received = true;
+    HVSCUOrder open_contactor_order(OPEN_CONTACTORS_ID, []() {
+        HVSCU::open_contactors();
     });
+    orders.push_back(open_contactor_order);
 
-    sdc_obccu_order = new HeapOrder(SDC_OBCCU_ID, []() {
-        Comms::sdc_obccu_order_received = true;
+    HVSCUOrder close_contactor_order(CLOSE_CONTACTORS_ID, []() {
+        HVSCU::close_contactors();
     });
+    orders.push_back(close_contactor_order);
+
+    HVSCUOrder sdc_obccu_order(SDC_OBCCU_ID, []() {
+        HVSCU::sdc_obccu->toggle();
+    });
+    orders.push_back(sdc_obccu_order);
 }
