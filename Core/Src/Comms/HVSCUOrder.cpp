@@ -1,7 +1,7 @@
-#include "HVSCU/HVSCUOrder.hpp"
+#include "Comms/HVSCUOrder.hpp"
 
-HVSCUOrder::HVSCUOrder(uint16_t id, HVSCUStateMachine::State state, void (*callback)(void))
-    : callback(callback), state(state) {
+HVSCUOrder::HVSCUOrder(uint16_t id, void (*callback)(void))
+    : callback(callback) {
         received = false;
         order = new HeapOrder(id, [this](){
             received = true;

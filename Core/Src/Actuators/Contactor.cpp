@@ -1,4 +1,4 @@
-#include "HVSCU/Contactor.hpp"
+#include "Actuators/Contactor.hpp"
 
 Contactor::Contactor(DigitalOutput output, bool normally_opened)
     : output(output), normally_opened(normally_opened) {}
