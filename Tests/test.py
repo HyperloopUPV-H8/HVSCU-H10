@@ -112,7 +112,7 @@ def HVSCU_Contactors_test():
     completes(
         hvscu.is_state,
         args=(HVSCU.StateMachine.GENERAL, HVSCU.General_SM.FAULT),
-        before = seconds(0.1) #let's use 0.1
+        before = seconds(0.1), #let's use 0.1
         msg="HVSCU should be in FAULT state!",
     )
     #finished the test succesfully

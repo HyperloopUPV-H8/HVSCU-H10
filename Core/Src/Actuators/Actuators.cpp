@@ -10,6 +10,7 @@ uint8_t Actuators::contactors_timeout_id;
 DigitalOutput* Actuators::led_operational = nullptr;
 DigitalOutput* Actuators::led_fault = nullptr;
 DigitalOutput* Actuators::sdc_obccu = nullptr;
+DigitalOutput* Actuators::imd_bypass = nullptr;
 
 void Actuators::start() {
     contactor_low = new Contactor(DigitalOutput(PG14), true);

@@ -48,6 +48,7 @@ void Control::add_orders() {
     HVSCUOrder open_contactor_order(Comms::OPEN_CONTACTORS_ID,
                                     []() { Actuators::open_contactors(); });
     orders[State::OPERATIONAL].push_back(open_contactor_order);
+    orders[State::FAULT].push_back(open_contactor_order);
 
     HVSCUOrder close_contactor_order(Comms::CLOSE_CONTACTORS_ID,
                                      []() { Actuators::close_contactors(); });
@@ -58,7 +59,7 @@ void Control::add_orders() {
     orders[State::OPERATIONAL].push_back(sdc_obccu_order);
 
     HVSCUOrder imd_bypass_order(Comms::IMD_BYPASS_ID,
-                               []() { Actuators::imd_bypass->toggle(); });
+                                []() { Actuators::imd_bypass->toggle(); });
     orders[State::OPERATIONAL].push_back(imd_bypass_order);
 }
 

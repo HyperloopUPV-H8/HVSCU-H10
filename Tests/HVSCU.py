@@ -25,7 +25,7 @@ class HVSCU:
 
 
     def __init__(self):
-        self._shm = SharedMemory("gpio_HVSCU", "state_machine_HVSCU")
+        self._shm = SharedMemory("shm_gpio_HVSCU", "shm_sm_HVSCU")
         self._client = Socket("localhost", 50400, "localhost", 50500)
         packet_definitions = {
             900: [],  # Close contactors
