@@ -9,15 +9,15 @@ jobs:
     strategy:
       matrix:
         preset:
-          - nucleo-debug
-          - nucleo-release
-          - nucleo-relwithdebinfo
+          # - nucleo-debug
+          # - nucleo-release
+          # - nucleo-relwithdebinfo
           - nucleo-debug-eth
           - nucleo-release-eth
           - nucleo-relwithdebinfo-eth
-          - board-debug
-          - board-release
-          - board-relwithdebinfo
+          # - board-debug
+          # - board-release
+          # - board-relwithdebinfo
           - board-debug-eth
           - board-release-eth
           - board-relwithdebinfo-eth
