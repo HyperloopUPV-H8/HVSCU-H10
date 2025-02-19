@@ -6,10 +6,10 @@
 
 class Control {
    private:
-   enum State : uint8_t { CONNECTING = 0, OPERATIONAL = 1, FAULT = 2 };
+    enum State : uint8_t { CONNECTING = 0, OPERATIONAL = 1, FAULT = 2 };
 
     StateMachine state_machine;
-    std::unordered_map<State, std::vector<HVSCUOrder>> orders;
+    std::unordered_map<State, std::vector<HVSCUOrderBase*>> orders;
 
     void add_states();
     void add_transitions();

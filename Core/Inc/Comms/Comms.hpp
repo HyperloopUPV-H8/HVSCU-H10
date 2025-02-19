@@ -4,6 +4,13 @@
 
 class Comms {
    public:
+    enum class IDOrder : uint16_t {
+        CLOSE_CONTACTORS_ID = 900,
+        OPEN_CONTACTORS_ID = 901,
+        SDC_OBCCU_ID = 902,
+        IMD_BYPASS_ID = 903
+    };
+    
     static const uint16_t CLOSE_CONTACTORS_ID = 900;
     static const uint16_t OPEN_CONTACTORS_ID = 901;
     static const uint16_t SDC_OBCCU_ID = 902;

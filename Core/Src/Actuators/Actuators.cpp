@@ -11,6 +11,7 @@ DigitalOutput* Actuators::led_operational = nullptr;
 DigitalOutput* Actuators::led_fault = nullptr;
 DigitalOutput* Actuators::sdc_obccu = nullptr;
 DigitalOutput* Actuators::imd_bypass = nullptr;
+DigitalOutput* Actuators::led_nucleo = nullptr;
 
 void Actuators::start() {
     contactor_low = new Contactor(DigitalOutput(PG14), true);
@@ -21,6 +22,7 @@ void Actuators::start() {
     led_fault = new DigitalOutput(PG7);
     sdc_obccu = new DigitalOutput(PA11);
     imd_bypass = new DigitalOutput(PF5);
+    led_nucleo = new DigitalOutput(PB0);
 }
 
 void Actuators::open_contactors() {
@@ -37,8 +39,10 @@ void Actuators::close_contactors() {
     contactor_low->close();
     contactor_precharge->close();
     contactor_high->open();
+    led_nucleo->turn_on();
     contactors_timeout_id = Time::set_timeout(3000, []() {
         contactor_precharge->open();
         contactor_high->close();
+        led_nucleo->turn_off();
     });
 }

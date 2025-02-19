@@ -10,6 +10,8 @@ Control::Control() : state_machine(0), orders() {
     add_states();
     add_transitions();
 
+    STLIB::start(Comms::HVSCU_IP);
+
     Comms::start();
     add_orders();
 }
@@ -45,28 +47,32 @@ void Control::add_transitions() {
 }
 
 void Control::add_orders() {
-    HVSCUOrder open_contactor_order(Comms::OPEN_CONTACTORS_ID,
-                                    []() { Actuators::open_contactors(); });
+    auto open_contactor_order =
+        new HVSCUOrder<Comms::IDOrder::OPEN_CONTACTORS_ID>(
+            []() { Actuators::open_contactors(); });
     orders[State::OPERATIONAL].push_back(open_contactor_order);
     orders[State::FAULT].push_back(open_contactor_order);
 
-    HVSCUOrder close_contactor_order(Comms::CLOSE_CONTACTORS_ID,
-                                     []() { Actuators::close_contactors(); });
+    auto close_contactor_order =
+        new HVSCUOrder<Comms::IDOrder::CLOSE_CONTACTORS_ID>([]() {
+            Actuators::close_contactors();
+        });
     orders[State::OPERATIONAL].push_back(close_contactor_order);
 
-    HVSCUOrder sdc_obccu_order(Comms::SDC_OBCCU_ID,
-                               []() { Actuators::sdc_obccu->toggle(); });
+    auto sdc_obccu_order = new HVSCUOrder<Comms::IDOrder::SDC_OBCCU_ID>(
+        []() { Actuators::sdc_obccu->toggle(); });
     orders[State::OPERATIONAL].push_back(sdc_obccu_order);
 
-    HVSCUOrder imd_bypass_order(Comms::IMD_BYPASS_ID,
-                                []() { Actuators::imd_bypass->toggle(); });
+    auto imd_bypass_order = new HVSCUOrder<Comms::IDOrder::IMD_BYPASS_ID>(
+        []() { Actuators::imd_bypass->toggle(); });
     orders[State::OPERATIONAL].push_back(imd_bypass_order);
 }
 
 void Control::update() {
+    STLIB::update();
     state_machine.check_transitions();
     for (auto &order :
          orders[static_cast<State>(state_machine.current_state)]) {
-        order.check_order();
+        order->check_order();
     }
 }
