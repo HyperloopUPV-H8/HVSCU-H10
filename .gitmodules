@@ -7,3 +7,6 @@
 [submodule "Tests/VirtualMCU"]
 	path = Tests/VirtualMCU
 	url = https://github.com/HyperloopUPV-H8/VirtualMCU
+[submodule "deps/BMS-LIB"]
+	path = deps/BMS-LIB
+	url = https://github.com/HyperloopUPV-H8/BMS-LIB.git
