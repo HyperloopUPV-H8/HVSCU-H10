@@ -114,6 +114,8 @@ target_compile_options(${EXECUTABLE} PRIVATE
 # REMEMBER TO CHANGE `.vscode/C_cpp_properties.json` TO MATCH THIS LIST
 target_include_directories(${EXECUTABLE} PRIVATE
   ${CMAKE_CURRENT_SOURCE_DIR}/Core/Inc
+
+  # ST-LIB
   $<$<BOOL:${CMAKE_CROSSCOMPILING}>:${STLIB_DIR}/Drivers/CMSIS/Device/ST/STM32H7xx/Include>
   $<$<BOOL:${CMAKE_CROSSCOMPILING}>:${STLIB_DIR}/Drivers/CMSIS/Include>
   $<$<BOOL:${CMAKE_CROSSCOMPILING}>:${STLIB_DIR}/Drivers/STM32H7xx_HAL_Driver/Inc>
@@ -140,6 +142,11 @@ target_include_directories(${EXECUTABLE} PRIVATE
   ${STLIB_DIR}/Inc
   ${STLIB_DIR}/Inc/ST-LIB_LOW
   ${STLIB_DIR}/Inc/ST-LIB_HIGH
+
+  #BMS-LIB
+  ${BMSLIB_DIR}
+  ${BMSLIB_DIR}/Inc
+  ${BMSLIB_DIR}/Inc/Models
 )
 
 target_link_options(${EXECUTABLE} PRIVATE 
