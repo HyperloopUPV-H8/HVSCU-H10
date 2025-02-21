@@ -3,6 +3,7 @@ cmake_minimum_required (VERSION 3.14)
 project (HVSCU ASM C CXX)
 set(EXECUTABLE ${PROJECT_NAME}.elf)
 set(STLIB_DIR ${CMAKE_CURRENT_LIST_DIR}/deps/ST-LIB)
+set(BMSLIB_DIR ${CMAKE_CURRENT_LIST_DIR}/deps/BMS-LIB)
 
 option(USE_ETHERNET "Enable ethernet peripheral" OFF)
 option(TARGET_NUCLEO "Targets the STM32H723 Nucleo development board" OFF)
@@ -21,7 +22,13 @@ if (PROJECT_IS_TOP_LEVEL AND (NOT CMAKE_CROSSCOMPILING))
   target_link_libraries(GTest::GTest INTERFACE gtest_main)
 endif()
 
+message("About to configure ST-LIB for HVSCU")
 add_subdirectory(${STLIB_DIR})
+message("ST-LIB configured for HVSCU")
+
+message("About to configure BMS-LIB for HVSCU")
+add_subdirectory(${BMSLIB_DIR})
+message("BMS-LIB configured for HVSCU")
 
 set(HAL_HEADER 
   ${CMAKE_SOURCE_DIR}/Core/Inc/main.h
