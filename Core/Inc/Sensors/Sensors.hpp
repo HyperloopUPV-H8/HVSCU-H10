@@ -1,8 +1,8 @@
-// #include "BMS-LIB.hpp"
+#include "BMS-LIB.hpp"
 
-// class Sensors {
-//    public:
-//     static BMSH *bmsh;
+class Sensors {
+   public:
+    static BMSH *bmsh;
 
-//     void start();
-// };
+    void start();
+};

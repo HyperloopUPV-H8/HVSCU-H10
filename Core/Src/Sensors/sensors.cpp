@@ -1,8 +1,8 @@
-// #include "Sensors/Sensors.hpp"
+#include "Sensors/Sensors.hpp"
 
-// BMSH *Sensors::bmsh;
+BMSH *Sensors::bmsh;
 
-// void Sensors::start() {
-//     bmsh = new BMSH(SPI::spi3);
-//     bmsh->initialize();
-// }
+void Sensors::start() {
+    bmsh = new BMSH(SPI::spi3);
+    bmsh->initialize();
+}
