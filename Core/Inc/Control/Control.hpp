@@ -10,10 +10,12 @@ class Control {
 
     StateMachine state_machine;
     std::unordered_map<State, std::vector<HVSCUOrderBase*>> orders;
+    std::unordered_map<State, std::vector<HeapPacket*>> packets;
 
     void add_states();
     void add_transitions();
     void add_orders();
+    void add_packets();
 
    public:
     Control();

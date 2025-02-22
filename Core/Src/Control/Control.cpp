@@ -1,8 +1,8 @@
 #include "Control/Control.hpp"
 
-#include "Comms/Comms.hpp"
-// #include "Sensors/"
 #include "Actuators/Actuators.hpp"
+#include "Comms/Comms.hpp"
+#include "Sensors/Sensors.hpp"
 
 Control::Control() : state_machine(0), orders() {
     Actuators::start();
@@ -14,6 +14,7 @@ Control::Control() : state_machine(0), orders() {
 
     Comms::start();
     add_orders();
+    add_packets();
 }
 
 void Control::add_states() {
@@ -54,9 +55,8 @@ void Control::add_orders() {
     orders[State::FAULT].push_back(open_contactor_order);
 
     auto close_contactor_order =
-        new HVSCUOrder<Comms::IDOrder::CLOSE_CONTACTORS_ID>([]() {
-            Actuators::close_contactors();
-        });
+        new HVSCUOrder<Comms::IDOrder::CLOSE_CONTACTORS_ID>(
+            []() { Actuators::close_contactors(); });
     orders[State::OPERATIONAL].push_back(close_contactor_order);
 
     auto sdc_obccu_order = new HVSCUOrder<Comms::IDOrder::SDC_OBCCU_ID>(
@@ -68,11 +68,36 @@ void Control::add_orders() {
     orders[State::OPERATIONAL].push_back(imd_bypass_order);
 }
 
+void Control::add_packets() {
+    auto battery1_packet =
+        new HeapPacket(static_cast<uint16_t>(Comms::IDPacket::BATTERY_1),
+                       &Sensors::bmsh->external_adcs[0].battery.SOC,
+                       Sensors::bmsh->external_adcs[0].battery.cells[0],
+                       Sensors::bmsh->external_adcs[0].battery.cells[1],
+                       Sensors::bmsh->external_adcs[0].battery.cells[2],
+                       Sensors::bmsh->external_adcs[0].battery.cells[3],
+                       Sensors::bmsh->external_adcs[0].battery.cells[4],
+                       Sensors::bmsh->external_adcs[0].battery.cells[5],
+                       &Sensors::bmsh->external_adcs[0].battery.minimum_cell,
+                       &Sensors::bmsh->external_adcs[0].battery.maximum_cell,
+                       &Sensors::converted_temps[0],
+                       Sensors::bmsh->external_adcs[0].battery.temperature2,
+                       &Sensors::bmsh->external_adcs[0].battery.is_balancing,
+                       &Sensors::bmsh->external_adcs[0].battery.total_voltage);
+    packets[State::OPERATIONAL].push_back(battery1_packet);
+}
+
 void Control::update() {
     STLIB::update();
     state_machine.check_transitions();
+
     for (auto &order :
          orders[static_cast<State>(state_machine.current_state)]) {
         order->check_order();
     }
+
+    for (auto &packet :
+        packets[static_cast<State>(state_machine.current_state)]) {
+            Comms::packets_endpoint->send_packet(*packet);
+   }
 }
