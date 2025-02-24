@@ -5,9 +5,16 @@ class Sensors {
     constexpr static float gain_batteries_temperatures = -795.45;
     static std::array<float, BMS::EXTERNAL_ADCS> offset_batteries_temps;
 
+    enum TURNO {
+        CELLS,
+        TEMPS
+    };
+    static TURNO turno;
+
    public:
     static BMSH *bmsh;
     static std::array<float, BMS::EXTERNAL_ADCS> converted_temps;
 
-    void start();
+    static void start();
+    static void cell_conversion();
 };

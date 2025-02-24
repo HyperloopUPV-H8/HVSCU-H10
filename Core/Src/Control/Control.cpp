@@ -4,8 +4,13 @@
 #include "Comms/Comms.hpp"
 #include "Sensors/Sensors.hpp"
 
-Control::Control() : state_machine(0), orders() {
+Control::Control()
+    : state_machine(0),
+      orders(),
+      send_packets_flag(false),
+      cell_conversion_flag(false) {
     Actuators::start();
+    Sensors::start();
 
     add_states();
     add_transitions();
@@ -14,7 +19,12 @@ Control::Control() : state_machine(0), orders() {
 
     Comms::start();
     add_orders();
+    Sensors::bmsh->initialize();
     add_packets();
+
+    Time::register_low_precision_alarm(11,
+                                       [&]() { cell_conversion_flag = true; });
+    Time::register_low_precision_alarm(17, [&]() { send_packets_flag = true; });
 }
 
 void Control::add_states() {
@@ -69,22 +79,25 @@ void Control::add_orders() {
 }
 
 void Control::add_packets() {
-    auto battery1_packet =
-        new HeapPacket(static_cast<uint16_t>(Comms::IDPacket::BATTERY_1),
-                       &Sensors::bmsh->external_adcs[0].battery.SOC,
-                       Sensors::bmsh->external_adcs[0].battery.cells[0],
-                       Sensors::bmsh->external_adcs[0].battery.cells[1],
-                       Sensors::bmsh->external_adcs[0].battery.cells[2],
-                       Sensors::bmsh->external_adcs[0].battery.cells[3],
-                       Sensors::bmsh->external_adcs[0].battery.cells[4],
-                       Sensors::bmsh->external_adcs[0].battery.cells[5],
-                       &Sensors::bmsh->external_adcs[0].battery.minimum_cell,
-                       &Sensors::bmsh->external_adcs[0].battery.maximum_cell,
-                       &Sensors::converted_temps[0],
-                       Sensors::bmsh->external_adcs[0].battery.temperature2,
-                       &Sensors::bmsh->external_adcs[0].battery.is_balancing,
-                       &Sensors::bmsh->external_adcs[0].battery.total_voltage);
-    packets[State::OPERATIONAL].push_back(battery1_packet);
+    for (int i = 0; i < 10; ++i) {
+        auto battery_packet = new HeapPacket(
+            static_cast<uint16_t>(Comms::IDPacket::BATTERY_1) + i,
+            &Sensors::bmsh->external_adcs[i].battery.SOC,
+            Sensors::bmsh->external_adcs[i].battery.cells[0],
+            Sensors::bmsh->external_adcs[i].battery.cells[1],
+            Sensors::bmsh->external_adcs[i].battery.cells[2],
+            Sensors::bmsh->external_adcs[i].battery.cells[3],
+            Sensors::bmsh->external_adcs[i].battery.cells[4],
+            Sensors::bmsh->external_adcs[i].battery.cells[5],
+            &Sensors::bmsh->external_adcs[i].battery.minimum_cell,
+            &Sensors::bmsh->external_adcs[i].battery.maximum_cell,
+            &Sensors::converted_temps[i],
+            Sensors::bmsh->external_adcs[i].battery.temperature2,
+            &Sensors::bmsh->external_adcs[i].battery.is_balancing,
+            &Sensors::bmsh->external_adcs[i].battery.total_voltage);
+
+        packets[State::OPERATIONAL].push_back(battery_packet);
+    }
 }
 
 void Control::update() {
@@ -96,8 +109,19 @@ void Control::update() {
         order->check_order();
     }
 
-    for (auto &packet :
-        packets[static_cast<State>(state_machine.current_state)]) {
+    if (cell_conversion_flag) {
+        cell_conversion_flag = false;
+        Sensors::cell_conversion();
+    }
+
+    if (send_packets_flag) {
+        for (auto &packet :
+             packets[static_cast<State>(state_machine.current_state)]) {
             Comms::packets_endpoint->send_packet(*packet);
-   }
+            for (auto &adc : Sensors::bmsh->external_adcs) {
+                adc.battery.update_data();
+            }
+        }
+        send_packets_flag = false;
+    }
 }
