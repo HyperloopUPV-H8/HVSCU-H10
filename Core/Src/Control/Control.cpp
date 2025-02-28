@@ -49,6 +49,16 @@ void Control::add_transitions() {
     state_machine.add_enter_action(
         [this]() { Actuators::led_operational->turn_on(); },
         State::OPERATIONAL);
+
+#ifdef NUCLEO
+    state_machine.add_low_precision_cyclic_action(
+        [this]() { Actuators::led_nucleo->toggle(); },
+        std::chrono::duration<int64_t, std::milli>(500), State::CONNECTING);
+    state_machine.add_enter_action(
+        [this]() { Actuators::led_nucleo->turn_on(); }, State::OPERATIONAL);
+    state_machine.add_enter_action(
+        [this]() { Actuators::led_nucleo->turn_off(); }, State::FAULT);
+#endif
 }
 
 void Control::add_orders() {
@@ -93,9 +103,9 @@ void Control::add_packets() {
         packets[State::OPERATIONAL].push_back(battery_packet);
     }
 
-    auto current_packet = new HeapPacket(
-        static_cast<uint16_t>(Comms::IDPacket::CURRENT),
-        &Sensors::voltage_reading, &Sensors::current_reading);
+    auto current_packet =
+        new HeapPacket(static_cast<uint16_t>(Comms::IDPacket::CURRENT),
+                       &Sensors::voltage_reading, &Sensors::current_reading);
     packets[State::OPERATIONAL].push_back(current_packet);
 }
 
