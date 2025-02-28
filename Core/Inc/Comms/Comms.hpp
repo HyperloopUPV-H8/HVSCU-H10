@@ -22,12 +22,17 @@ class Comms {
         BATTERY_8 = 917,
         BATTERY_9 = 918,
         BATTERY_10 = 919,
+        BATTERY_11 = 920,
+        BATTERY_12 = 921,
+        BATTERY_13 = 922,
+        BATTERY_14 = 923,
+        BATTERY_15 = 924,
+        BATTERY_16 = 925,
+        BATTERY_17 = 926,
+        BATTERY_18 = 927,
+        CURRENT = 930
     };
 
-    static const uint16_t CLOSE_CONTACTORS_ID = 900;
-    static const uint16_t OPEN_CONTACTORS_ID = 901;
-    static const uint16_t SDC_OBCCU_ID = 902;
-    static const uint16_t IMD_BYPASS_ID = 903;
     static const uint16_t CONTROL_STATION_PORT = 50500;
     static const uint16_t PACKETS_ENDPOINT_PORT = 50400;
     static constexpr std::string CONTROL_SATION_IP = "192.168.0.9";

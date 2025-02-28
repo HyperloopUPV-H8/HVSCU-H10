@@ -12,7 +12,6 @@ class Control {
     std::unordered_map<State, std::vector<HVSCUOrderBase*>> orders;
     std::unordered_map<State, std::vector<HeapPacket*>> packets;
     bool send_packets_flag;
-    bool cell_conversion_flag;
 
     void add_states();
     void add_transitions();

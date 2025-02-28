@@ -1,5 +1,7 @@
 #include "Actuators/Actuators.hpp"
 
+#include "HVSCUPinout.hpp"
+
 Contactor* Actuators::contactor_low = nullptr;
 Contactor* Actuators::contactor_high = nullptr;
 Contactor* Actuators::contactor_precharge = nullptr;
@@ -14,15 +16,19 @@ DigitalOutput* Actuators::imd_bypass = nullptr;
 DigitalOutput* Actuators::led_nucleo = nullptr;
 
 void Actuators::start() {
-    contactor_low = new Contactor(DigitalOutput(PG14), true);
-    contactor_high = new Contactor(DigitalOutput(PG12), true);
-    contactor_precharge = new Contactor(DigitalOutput(PD4), true);
-    contactor_discharge = new Contactor(DigitalOutput(PF4), false);
-    led_operational = new DigitalOutput(PG8);
-    led_fault = new DigitalOutput(PG7);
-    sdc_obccu = new DigitalOutput(PA11);
-    imd_bypass = new DigitalOutput(PF5);
-    led_nucleo = new DigitalOutput(PB0);
+    contactor_low = new Contactor(DigitalOutput(CONTACTOR_LOW), true);
+    contactor_high = new Contactor(DigitalOutput(CONTACTOR_HIGH), true);
+    contactor_precharge =
+        new Contactor(DigitalOutput(CONTACTOR_PRECHARGE), true);
+    contactor_discharge =
+        new Contactor(DigitalOutput(CONTACTOR_DISCHARGE), false);
+    led_operational = new DigitalOutput(LED_OPERATIONAL);
+    led_fault = new DigitalOutput(LED_FAULT);
+    sdc_obccu = new DigitalOutput(SDC_OBCCU);
+    imd_bypass = new DigitalOutput(IMD_BYPASS);
+#ifdef NUCLEO
+    led_nucleo = new DigitalOutput(LED_NUCLEO);
+#endif
 }
 
 void Actuators::open_contactors() {

@@ -4,11 +4,7 @@
 #include "Comms/Comms.hpp"
 #include "Sensors/Sensors.hpp"
 
-Control::Control()
-    : state_machine(0),
-      orders(),
-      send_packets_flag(false),
-      cell_conversion_flag(false) {
+Control::Control() : state_machine(0), orders(), send_packets_flag(false) {
     Actuators::start();
     Sensors::start();
 
@@ -22,8 +18,6 @@ Control::Control()
     Sensors::bmsh->initialize();
     add_packets();
 
-    Time::register_low_precision_alarm(11,
-                                       [&]() { cell_conversion_flag = true; });
     Time::register_low_precision_alarm(17, [&]() { send_packets_flag = true; });
 }
 
@@ -98,10 +92,16 @@ void Control::add_packets() {
 
         packets[State::OPERATIONAL].push_back(battery_packet);
     }
+
+    auto current_packet = new HeapPacket(
+        static_cast<uint16_t>(Comms::IDPacket::CURRENT),
+        &Sensors::voltage_reading, &Sensors::current_reading);
+    packets[State::OPERATIONAL].push_back(current_packet);
 }
 
 void Control::update() {
     STLIB::update();
+    Sensors::update();
     state_machine.check_transitions();
 
     for (auto &order :
@@ -109,18 +109,10 @@ void Control::update() {
         order->check_order();
     }
 
-    if (cell_conversion_flag) {
-        cell_conversion_flag = false;
-        Sensors::cell_conversion();
-    }
-
     if (send_packets_flag) {
         for (auto &packet :
              packets[static_cast<State>(state_machine.current_state)]) {
             Comms::packets_endpoint->send_packet(*packet);
-            for (auto &adc : Sensors::bmsh->external_adcs) {
-                adc.battery.update_data();
-            }
         }
         send_packets_flag = false;
     }
