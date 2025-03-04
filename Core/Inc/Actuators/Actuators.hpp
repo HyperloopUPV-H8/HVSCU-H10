@@ -16,7 +16,9 @@ class Actuators {
     static DigitalOutput* led_fault;
     static DigitalOutput* sdc_obccu;
     static DigitalOutput* imd_bypass;
+#ifdef NUCLEO
     static DigitalOutput* led_nucleo;
+#endif
 
     static void start();
     static void open_contactors();

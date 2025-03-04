@@ -1,12 +1,14 @@
 #include "BMS-LIB.hpp"
 #include "HVSCUConfig.hpp"
 
+#define ZEROING_MEASURE 100000
+
 class Sensors {
    private:
 #if SENSOR_CHARACTERIZATION
-    static const float slope = 1.0;
+    static constexpr float slope = 1.0;
 #else
-    static const float slope = 1.0;
+    static constexpr float slope = 92.9342343462816;
 #endif
     static float offset;
     constexpr static float gain_batteries_temperatures = -795.45;
@@ -19,6 +21,10 @@ class Sensors {
     enum TURNO { CELLS, TEMPS };
     static TURNO turno;
 
+    static void cell_conversion();
+    static void read_current();
+    static void zeroing();
+
    public:
     static BMSH *bmsh;
     static std::array<float, BMS::EXTERNAL_ADCS> converted_temps;
@@ -28,6 +34,4 @@ class Sensors {
 
     static void start();
     static void update();
-    static void cell_conversion();
-    static void read_current();
 };
