@@ -73,12 +73,15 @@ void Control::add_orders() {
             Actuators::start_precharge();
 #if SMART_PRECHARGE
             uint8_t precharge_timer_id = 0;
-            precharge_timer_id =
-                Time::register_mid_precision_alarm(100, [precharge_timer_id]() {
+            uint8_t precharge_timeout_id =
+                Time::set_timeout(4000, []() { Actuators::open_HV(); });
+            precharge_timer_id = Time::register_mid_precision_alarm(
+                100, [precharge_timer_id, precharge_timeout_id]() {
                     float average_PPUs_voltage =
                         (Sensors::PPU1_voltage + Sensors::PPU2_voltage) / 2;
                     if (average_PPUs_voltage / Sensors::total_voltage > 0.95) {
                         Actuators::close_HV();
+                        Time::cancel_timeout(precharge_timeout_id);
                         Time::unregister_mid_precision_alarm(
                             precharge_timer_id);
                     }
