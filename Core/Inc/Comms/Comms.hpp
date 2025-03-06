@@ -31,7 +31,8 @@ class Comms {
         BATTERY_16 = 925,
         BATTERY_17 = 926,
         BATTERY_18 = 927,
-        CURRENT = 930
+        CURRENT = 930,
+        PPU_VOLTAGE = 551
     };
 
     static const uint16_t CONTROL_STATION_PORT = 50500;

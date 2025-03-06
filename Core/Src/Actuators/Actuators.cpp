@@ -39,7 +39,7 @@ void Actuators::start() {
 void Actuators::open_HV() {
     contactor_discharge->close();
     contactor_low->open();
-    contactor_high->close();
+    contactor_high->open();
     contactor_precharge->open();
 }
 

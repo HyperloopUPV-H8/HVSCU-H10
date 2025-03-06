@@ -77,9 +77,11 @@ void Control::add_orders() {
                 Time::set_timeout(4000, []() { Actuators::open_HV(); });
             precharge_timer_id = Time::register_mid_precision_alarm(
                 100, [precharge_timer_id, precharge_timeout_id]() {
-                    float average_PPUs_voltage =
-                        (Sensors::PPU1_voltage + Sensors::PPU2_voltage) / 2;
-                    if (average_PPUs_voltage / Sensors::total_voltage > 0.95) {
+                    // float average_PPUs_voltage = (Sensors::PPU1_voltage +
+                    // Sensors::PPU2_voltage) / 2; Use the above when two PPUs
+                    // work well
+                    float average_PPUs_voltage = Sensors::PPU2_voltage;
+                    if (average_PPUs_voltage / Sensors::total_voltage > 0.90) {
                         Actuators::close_HV();
                         Time::cancel_timeout(precharge_timeout_id);
                         Time::unregister_mid_precision_alarm(
@@ -135,7 +137,7 @@ void Control::add_packets() {
     packets[State::OPERATIONAL].push_back(current_packet);
 
     auto PPU_voltage_packet =
-        new HeapPacket(static_cast<uint16_t>(Comms::IDPacket::CURRENT),
+        new HeapPacket(static_cast<uint16_t>(Comms::IDPacket::PPU_VOLTAGE),
                        &Sensors::PPU1_voltage, &Sensors::PPU2_voltage);
     packets[State::OPERATIONAL].push_back(PPU_voltage_packet);
 }
