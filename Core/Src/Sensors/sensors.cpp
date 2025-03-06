@@ -13,14 +13,22 @@ LinearSensor<float> *Sensors::current_sensor = nullptr;
 uint8_t Sensors::voltage_adc_id;
 float Sensors::current_reading;
 float Sensors::voltage_reading;
-float Sensors::total_voltage;
+
+#if BATTERIES_CONNECTED
+float Sensors::total_voltage = 0.0;
+#else
+float Sensors::total_voltage = 251.8;
+#endif
 
 float Sensors::PPU1_voltage = 0.0;
 float Sensors::PPU2_voltage = 0.0;
 
+#if BATTERIES_CONNECTED
 bool Sensors::cell_conversion_flag = false;
+#endif
 bool Sensors::current_reading_flag = false;
 
+#if BATTERIES_CONNECTED
 void Sensors::cell_conversion() {
     bmsh->wake_up();
     if (turno == CELLS) {
@@ -48,6 +56,7 @@ void Sensors::cell_conversion() {
         total_voltage += adc.battery.total_voltage;
     }
 }
+#endif
 
 void Sensors::read_current() {
     voltage_reading = ADC::get_value(voltage_adc_id);
@@ -74,17 +83,21 @@ void Sensors::start() {
 
     zeroing();
 
+#if BATTERIES_CONNECTED
     Time::register_low_precision_alarm(11,
                                        [&]() { cell_conversion_flag = true; });
+#endif
     Time::register_low_precision_alarm(10,
                                        [&]() { current_reading_flag = true; });
 }
 
 void Sensors::update() {
+#if BATTERIES_CONNECTED
     if (cell_conversion_flag) {
         cell_conversion();
         cell_conversion_flag = false;
     }
+#endif
     if (current_reading_flag) {
         read_current();
         current_reading_flag = false;

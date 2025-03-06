@@ -15,13 +15,17 @@ class Sensors {
     static std::array<float, BMS::EXTERNAL_ADCS> offset_batteries_temps;
     static LinearSensor<float> *current_sensor;
     static uint8_t voltage_adc_id;
+#if BATTERIES_CONNECTED
     static bool cell_conversion_flag;
+#endif
     static bool current_reading_flag;
 
     enum TURNO { CELLS, TEMPS };
     static TURNO turno;
 
+#if BATTERIES_CONNECTED
     static void cell_conversion();
+#endif
     static void read_current();
 
    public:
