@@ -13,6 +13,10 @@ LinearSensor<float> *Sensors::current_sensor = nullptr;
 uint8_t Sensors::voltage_adc_id;
 float Sensors::current_reading;
 float Sensors::voltage_reading;
+float Sensors::total_voltage;
+
+float Sensors::PPU1_voltage = 0.0;
+float Sensors::PPU2_voltage = 0.0;
 
 bool Sensors::cell_conversion_flag = false;
 bool Sensors::current_reading_flag = false;
@@ -38,8 +42,10 @@ void Sensors::cell_conversion() {
         converted_temps[i] = val;
 #endif
     }
+    total_voltage = 0.0;
     for (auto &adc : bmsh->external_adcs) {
         adc.battery.update_data();
+        total_voltage += adc.battery.total_voltage;
     }
 }
 
@@ -50,7 +56,7 @@ void Sensors::read_current() {
 
 void Sensors::zeroing() {
     float average_voltage = 0.0;
-    for(int i = 0; i < ZEROING_MEASURE; ++i) {
+    for (int i = 0; i < ZEROING_MEASURE; ++i) {
         read_current();
         average_voltage += voltage_reading;
     }

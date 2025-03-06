@@ -36,11 +36,14 @@ class Comms {
 
     static const uint16_t CONTROL_STATION_PORT = 50500;
     static const uint16_t PACKETS_ENDPOINT_PORT = 50400;
+    static const uint16_t PCU_ENDPOINT_PORT = 50417;
     static constexpr std::string CONTROL_SATION_IP = "192.168.0.9";
+    static constexpr std::string PCU_IP = "192.168.1.5";
     static constexpr std::string HVSCU_IP = "192.168.1.7";
 
     static ServerSocket* control_station;
     static DatagramSocket* packets_endpoint;
+    static DatagramSocket* PCU_endpoint;
 
     static void start();
 };

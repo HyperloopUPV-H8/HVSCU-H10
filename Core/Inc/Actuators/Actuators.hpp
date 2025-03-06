@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Actuators/Contactor.hpp"
+#include "HVSCUConfig.hpp"
 
 class Actuators {
    private:
@@ -9,7 +10,10 @@ class Actuators {
     static Contactor* contactor_precharge;
     static Contactor* contactor_discharge;
 
+#if SMART_PRECHARGE
+#else
     static uint8_t contactors_timeout_id;
+#endif
 
    public:
     static DigitalOutput* led_operational;
@@ -21,6 +25,8 @@ class Actuators {
 #endif
 
     static void start();
-    static void open_contactors();
-    static void close_contactors();
+
+    static void open_HV();
+    static void close_HV();
+    static void start_precharge();
 };

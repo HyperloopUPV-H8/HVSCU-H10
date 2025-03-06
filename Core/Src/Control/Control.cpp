@@ -37,7 +37,7 @@ void Control::add_transitions() {
 
     state_machine.add_enter_action(
         [this]() {
-            Actuators::open_contactors();
+            Actuators::open_HV();
             Actuators::led_fault->turn_on();
         },
         State::FAULT);
@@ -64,13 +64,32 @@ void Control::add_transitions() {
 void Control::add_orders() {
     auto open_contactor_order =
         new HVSCUOrder<Comms::IDOrder::OPEN_CONTACTORS_ID>(
-            []() { Actuators::open_contactors(); });
+            []() { Actuators::open_HV(); });
     orders[State::OPERATIONAL].push_back(open_contactor_order);
     orders[State::FAULT].push_back(open_contactor_order);
 
     auto close_contactor_order =
-        new HVSCUOrder<Comms::IDOrder::CLOSE_CONTACTORS_ID>(
-            []() { Actuators::close_contactors(); });
+        new HVSCUOrder<Comms::IDOrder::CLOSE_CONTACTORS_ID>([]() {
+            Actuators::start_precharge();
+#if SMART_PRECHARGE
+            uint8_t precharge_timer_id = 0;
+            precharge_timer_id =
+                Time::register_mid_precision_alarm(100, [precharge_timer_id]() {
+                    float average_PPUs_voltage =
+                        (Sensors::PPU1_voltage + Sensors::PPU2_voltage) / 2;
+                    if (average_PPUs_voltage / Sensors::total_voltage > 0.95) {
+                        Actuators::close_HV();
+                        Time::unregister_mid_precision_alarm(
+                            precharge_timer_id);
+                    }
+                });
+#else
+            contactors_timeout_id = Time::set_timeout(3000, []() {
+                contactor_precharge->open();
+                contactor_high->close();
+            });
+#endif
+        });
     orders[State::OPERATIONAL].push_back(close_contactor_order);
 
     auto sdc_obccu_order = new HVSCUOrder<Comms::IDOrder::SDC_OBCCU_ID>(
@@ -111,6 +130,11 @@ void Control::add_packets() {
         new HeapPacket(static_cast<uint16_t>(Comms::IDPacket::CURRENT),
                        &Sensors::voltage_reading, &Sensors::current_reading);
     packets[State::OPERATIONAL].push_back(current_packet);
+
+    auto PPU_voltage_packet =
+        new HeapPacket(static_cast<uint16_t>(Comms::IDPacket::CURRENT),
+                       &Sensors::PPU1_voltage, &Sensors::PPU2_voltage);
+    packets[State::OPERATIONAL].push_back(PPU_voltage_packet);
 }
 
 void Control::update() {

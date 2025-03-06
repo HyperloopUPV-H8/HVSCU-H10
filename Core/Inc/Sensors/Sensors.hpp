@@ -30,6 +30,10 @@ class Sensors {
 
     static float current_reading;
     static float voltage_reading;
+    static float total_voltage;
+
+    static float PPU1_voltage;
+    static float PPU2_voltage;
 
     static void start();
     static void update();
