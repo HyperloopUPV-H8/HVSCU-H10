@@ -80,6 +80,10 @@ void Control::add_orders() {
     auto imd_bypass_order = new HVSCUOrder<Comms::IDOrder::IMD_BYPASS_ID>(
         []() { Actuators::imd_bypass->toggle(); });
     orders[State::OPERATIONAL].push_back(imd_bypass_order);
+
+    auto zeroing =
+        new HVSCUOrder<Comms::IDOrder::ZEROING>([]() { Sensors::zeroing(); });
+    orders[State::OPERATIONAL].push_back(zeroing);
 }
 
 void Control::add_packets() {

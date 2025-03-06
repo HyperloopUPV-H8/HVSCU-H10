@@ -8,7 +8,8 @@ class Comms {
         CLOSE_CONTACTORS_ID = 900,
         OPEN_CONTACTORS_ID = 901,
         SDC_OBCCU_ID = 902,
-        IMD_BYPASS_ID = 903
+        IMD_BYPASS_ID = 903,
+        ZEROING = 904
     };
 
     enum class IDPacket : uint16_t {

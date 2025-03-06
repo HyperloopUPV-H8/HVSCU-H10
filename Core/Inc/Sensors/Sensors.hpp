@@ -23,7 +23,6 @@ class Sensors {
 
     static void cell_conversion();
     static void read_current();
-    static void zeroing();
 
    public:
     static BMSH *bmsh;
@@ -34,4 +33,5 @@ class Sensors {
 
     static void start();
     static void update();
+    static void zeroing();
 };
