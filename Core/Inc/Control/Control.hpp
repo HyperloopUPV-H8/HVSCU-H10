@@ -4,6 +4,8 @@
 #include "Comms/HVSCUOrder.hpp"
 #include "ST-LIB.hpp"
 
+#define PERCENTAGE_TO_FINISH_PRECHARGE 0.90
+
 class Control {
    private:
     enum State : uint8_t { CONNECTING = 0, OPERATIONAL = 1, FAULT = 2 };

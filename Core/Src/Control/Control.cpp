@@ -77,6 +77,7 @@ void Control::add_orders() {
                 Time::set_timeout(4000, [precharge_timer_id]() {
                     Time::unregister_mid_precision_alarm(precharge_timer_id);
                     Actuators::open_HV();
+                    state_machine.force_change_state(State::FAULT);
                 });
             precharge_timer_id = Time::register_mid_precision_alarm(
                 100, [precharge_timer_id, precharge_timeout_id]() {
@@ -84,7 +85,8 @@ void Control::add_orders() {
                     // Sensors::PPU2_voltage) / 2; Use the above when two PPUs
                     // work well
                     float average_PPUs_voltage = Sensors::PPU2_voltage;
-                    if (average_PPUs_voltage / Sensors::total_voltage > 0.90) {
+                    if (average_PPUs_voltage / Sensors::total_voltage >
+                        PERCENTAGE_TO_FINISH_PRECHARGE) {
                         Actuators::close_HV();
                         Time::cancel_timeout(precharge_timeout_id);
                         Time::unregister_mid_precision_alarm(
