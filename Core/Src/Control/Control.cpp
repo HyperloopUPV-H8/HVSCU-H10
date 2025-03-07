@@ -63,8 +63,12 @@ void Control::add_transitions() {
 
 void Control::add_orders() {
     auto open_contactor_order =
-        new HVSCUOrder<Comms::IDOrder::OPEN_CONTACTORS_ID>(
-            []() { Actuators::open_HV(); });
+        new HVSCUOrder<Comms::IDOrder::OPEN_CONTACTORS_ID>([]() {
+            Actuators::open_HV();
+#if SMART_PRECHARGE
+            Time::cancel_timeout(Actuators::contactors_timeout_id);
+#endif
+        });
     orders[State::OPERATIONAL].push_back(open_contactor_order);
     orders[State::FAULT].push_back(open_contactor_order);
 
@@ -94,10 +98,8 @@ void Control::add_orders() {
                     }
                 });
 #else
-            contactors_timeout_id = Time::set_timeout(3000, []() {
-                contactor_precharge->open();
-                contactor_high->close();
-            });
+            Actuators::contactors_timeout_id =
+                Time::set_timeout(3000, []() { Actuators::close_HV(); });
 #endif
         });
     orders[State::OPERATIONAL].push_back(close_contactor_order);

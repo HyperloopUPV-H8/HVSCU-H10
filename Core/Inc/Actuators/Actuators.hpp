@@ -10,16 +10,15 @@ class Actuators {
     static Contactor* contactor_precharge;
     static Contactor* contactor_discharge;
 
-#if SMART_PRECHARGE
-#else
-    static uint8_t contactors_timeout_id;
-#endif
-
    public:
     static DigitalOutput* led_operational;
     static DigitalOutput* led_fault;
     static DigitalOutput* sdc_obccu;
     static DigitalOutput* imd_bypass;
+#if SMART_PRECHARGE
+#else
+    static uint8_t contactors_timeout_id;
+#endif
 #ifdef NUCLEO
     static DigitalOutput* led_nucleo;
 #endif
