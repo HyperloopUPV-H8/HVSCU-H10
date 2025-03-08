@@ -31,6 +31,7 @@ class Sensors {
     static float current_reading;
     static float voltage_reading;
 
+    static void init();
     static void start();
     static void update();
     static void zeroing();

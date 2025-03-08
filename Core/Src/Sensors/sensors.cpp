@@ -50,7 +50,7 @@ void Sensors::read_current() {
 
 void Sensors::zeroing() {
     float average_voltage = 0.0;
-    for(int i = 0; i < ZEROING_MEASURE; ++i) {
+    for (int i = 0; i < ZEROING_MEASURE; ++i) {
         read_current();
         average_voltage += voltage_reading;
     }
@@ -59,12 +59,16 @@ void Sensors::zeroing() {
     current_sensor->set_offset(offset);
 }
 
-void Sensors::start() {
+void Sensors::init() {
     bmsh = new BMSH(SPI::spi3);
 
     current_sensor =
         new LinearSensor<float>(PA0, slope, offset, &current_reading);
     voltage_adc_id = current_sensor->get_id();
+}
+
+void Sensors::start() {
+    bmsh->initialize();
 
     zeroing();
 
