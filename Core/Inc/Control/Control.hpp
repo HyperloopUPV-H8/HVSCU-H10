@@ -15,6 +15,7 @@ class Control {
 
     void add_states();
     void add_transitions();
+    void add_protections();
     void add_orders();
     void add_packets();
 

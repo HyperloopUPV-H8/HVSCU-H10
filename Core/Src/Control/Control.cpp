@@ -10,6 +10,7 @@ Control::Control() : state_machine(0), orders(), send_packets_flag(false) {
 
     add_states();
     add_transitions();
+    add_protections();
 
     STLIB::start(Comms::HVSCU_IP);
 
@@ -59,6 +60,17 @@ void Control::add_transitions() {
     state_machine.add_enter_action(
         [this]() { Actuators::led_nucleo->turn_off(); }, State::FAULT);
 #endif
+}
+
+void Control::add_protections() {
+    ProtectionManager::link_state_machine(state_machine, State::FAULT);
+
+    for (auto bmsh_device : Sensors::bmsh->external_adcs) {
+        add_protection(&bmsh_device.battery.total_voltage,
+                       Boundary<float, BELOW>(20.0));
+    }
+
+    add_protection(&Sensors::current_reading, Boundary<float, OUT_OF_RANGE>(-35.0, 85.0))
 }
 
 void Control::add_orders() {
@@ -115,6 +127,7 @@ void Control::add_packets() {
 
 void Control::update() {
     STLIB::update();
+    ProtectionManager::check_protections();
     Sensors::update();
     state_machine.check_transitions();
 
