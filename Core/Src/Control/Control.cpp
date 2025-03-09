@@ -2,6 +2,7 @@
 
 #include "Actuators/Actuators.hpp"
 #include "Comms/Comms.hpp"
+#include "HVSCUPinout.hpp"
 #include "Sensors/Sensors.hpp"
 
 Control::Control() : state_machine(0), orders(), send_packets_flag(false) {
@@ -38,6 +39,7 @@ void Control::add_transitions() {
 
     state_machine.add_enter_action(
         [this]() {
+            ProtectionManager::propagate_fault();
             Actuators::open_contactors();
             Actuators::led_fault->turn_on();
         },
@@ -65,12 +67,20 @@ void Control::add_transitions() {
 void Control::add_protections() {
     ProtectionManager::link_state_machine(state_machine, State::FAULT);
 
+    // Batteries undervoltage
     for (auto bmsh_device : Sensors::bmsh->external_adcs) {
         add_protection(&bmsh_device.battery.total_voltage,
                        Boundary<float, BELOW>(20.0));
     }
 
-    add_protection(&Sensors::current_reading, Boundary<float, OUT_OF_RANGE>(-35.0, 85.0))
+    // Batteries pack current out of range
+    add_protection(&Sensors::current_reading,
+                   Boundary<float, OUT_OF_RANGE>(-35.0, 85.0));
+
+    // SDC_OBCCU goes down
+    ExternalInterrupt::inscribe(
+        SDC_OBCCU, []() { ProtectionManager::fault_and_propagate(); },
+        TRIGGER::FAILING_EDGE);
 }
 
 void Control::add_orders() {
