@@ -143,10 +143,8 @@ void Control::add_packets() {
                        &Sensors::voltage_reading, &Sensors::current_reading);
     packets[State::OPERATIONAL].push_back(current_packet);
 
-    auto PPU_voltage_packet =
-        new HeapPacket(static_cast<uint16_t>(Comms::IDPacket::PPU_VOLTAGE),
-                       &Sensors::PPU1_voltage, &Sensors::PPU2_voltage);
-    packets[State::OPERATIONAL].push_back(PPU_voltage_packet);
+    new HeapPacket(static_cast<uint16_t>(Comms::IDPacket::PPU_VOLTAGE),
+                   &Sensors::PPU1_voltage, &Sensors::PPU2_voltage);
 }
 
 void Control::update() {
