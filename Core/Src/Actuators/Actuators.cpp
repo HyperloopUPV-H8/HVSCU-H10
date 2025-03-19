@@ -7,11 +7,6 @@ Contactor* Actuators::contactor_high = nullptr;
 Contactor* Actuators::contactor_precharge = nullptr;
 Contactor* Actuators::contactor_discharge = nullptr;
 
-#if SMART_PRECHARGE
-#else
-uint8_t Actuators::contactors_timeout_id;
-#endif
-
 DigitalOutput* Actuators::led_operational = nullptr;
 DigitalOutput* Actuators::led_fault = nullptr;
 DigitalOutput* Actuators::sdc_obccu = nullptr;

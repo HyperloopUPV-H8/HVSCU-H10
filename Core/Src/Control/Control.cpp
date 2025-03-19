@@ -63,11 +63,9 @@ void Control::add_transitions() {
 
 void Control::add_orders() {
     auto open_contactor_order =
-        new HVSCUOrder<Comms::IDOrder::OPEN_CONTACTORS_ID>([]() {
+        new HVSCUOrder<Comms::IDOrder::OPEN_CONTACTORS_ID>([this]() {
+            cancel_timeouts();
             Actuators::open_HV();
-#if SMART_PRECHARGE
-            Time::cancel_timeout(Actuators::contactors_timeout_id);
-#endif
         });
     orders[State::OPERATIONAL].push_back(open_contactor_order);
     orders[State::FAULT].push_back(open_contactor_order);
@@ -91,14 +89,12 @@ void Control::add_orders() {
                     float average_PPUs_voltage = Sensors::PPU2_voltage;
                     if (average_PPUs_voltage / Sensors::total_voltage >
                         PERCENTAGE_TO_FINISH_PRECHARGE) {
+                        cancel_timeouts();
                         Actuators::close_HV();
-                        Time::cancel_timeout(precharge_timeout_id);
-                        Time::unregister_mid_precision_alarm(
-                            precharge_timer_id);
                     }
                 });
 #else
-            Actuators::contactors_timeout_id =
+            contactors_timeout_id =
                 Time::set_timeout(3000, []() { Actuators::close_HV(); });
 #endif
         });
