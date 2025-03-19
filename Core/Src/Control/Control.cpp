@@ -67,15 +67,17 @@ void Control::add_transitions() {
 void Control::add_protections() {
     ProtectionManager::link_state_machine(state_machine, State::FAULT);
 
+#if BATTERIES_CONNECTED
     // Batteries undervoltage
     for (auto bmsh_device : Sensors::bmsh->external_adcs) {
         add_protection(&bmsh_device.battery.total_voltage,
                        Boundary<float, BELOW>(20.0));
     }
+#endif
 
     // Batteries pack current out of range
     add_protection(&Sensors::current_reading,
-                   Boundary<float, OUT_OF_RANGE>(-35.0, 85.0));
+                   Boundary<float, OUT_OF_RANGE>(-35.0, 75.0));
 
     // SDC_OBCCU goes down
     ExternalInterrupt::inscribe(
