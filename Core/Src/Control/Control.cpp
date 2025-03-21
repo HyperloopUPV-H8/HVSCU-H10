@@ -5,7 +5,7 @@
 #include "HVSCUPinout.hpp"
 #include "Sensors/Sensors.hpp"
 
-Control::Control() : state_machine(0), orders(), send_packets_flag(false) {
+Control::Control() : state_machine(), orders(), send_packets_flag(false) {
     Actuators::start();
     Sensors::start();
 
