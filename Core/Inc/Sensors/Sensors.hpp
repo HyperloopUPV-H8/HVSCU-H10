@@ -29,6 +29,7 @@ class Sensors {
     static std::array<float, BMS::EXTERNAL_ADCS> converted_temps;
 
     static float current_reading;
+    static FloatMovingAverage<100> moving_average_current;
     static float voltage_reading;
 
     static void init();

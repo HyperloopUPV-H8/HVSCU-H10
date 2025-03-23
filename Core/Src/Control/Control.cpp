@@ -109,7 +109,7 @@ void Control::add_packets() {
 
     auto current_packet =
         new HeapPacket(static_cast<uint16_t>(Comms::IDPacket::CURRENT),
-                       &Sensors::voltage_reading, &Sensors::current_reading);
+                       &Sensors::voltage_reading, &Sensors::moving_average_current.output_value);
     packets[State::OPERATIONAL].push_back(current_packet);
 }
 

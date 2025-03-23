@@ -12,6 +12,7 @@ Sensors::TURNO Sensors::turno = CELLS;
 LinearSensor<float> *Sensors::current_sensor = nullptr;
 uint8_t Sensors::voltage_adc_id;
 float Sensors::current_reading;
+FloatMovingAverage<100> Sensors::moving_average_current;
 float Sensors::voltage_reading;
 
 bool Sensors::cell_conversion_flag = false;
@@ -46,6 +47,7 @@ void Sensors::cell_conversion() {
 void Sensors::read_current() {
     voltage_reading = ADC::get_value(voltage_adc_id);
     current_sensor->read();
+    moving_average_current.input(current_reading);
 }
 
 void Sensors::zeroing() {
@@ -65,6 +67,7 @@ void Sensors::init() {
     current_sensor =
         new LinearSensor<float>(PA0, slope, offset, &current_reading);
     voltage_adc_id = current_sensor->get_id();
+    moving_average_current = FloatMovingAverage<100>();
 }
 
 void Sensors::start() {
