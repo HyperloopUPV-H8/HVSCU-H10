@@ -13,7 +13,6 @@ Sensors::TURNO Sensors::turno = CELLS;
 std::unique_ptr<CurrentSensor> Sensors::current_sensor = nullptr;
 std::unique_ptr<VoltageSensor> Sensors::voltage_sensor = nullptr;
 
-
 // Flags
 bool Sensors::cell_conversion_flag = false;
 bool Sensors::current_reading_flag = false;
@@ -59,6 +58,8 @@ void Sensors::start() {
                                        [&]() { cell_conversion_flag = true; });
     Time::register_low_precision_alarm(10,
                                        [&]() { current_reading_flag = true; });
+    Time::register_low_precision_alarm(10,
+                                       [&]() { voltage_reading_flag = true; });
 }
 
 void Sensors::update() {
