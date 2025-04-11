@@ -1,6 +1,6 @@
 #include "Sensors/Sensors.hpp"
 
-float Sensors::offset = -153.898815693102;
+// Olf BMS-LIB relative stuff
 BMSH *Sensors::bmsh;
 std::array<float, BMS::EXTERNAL_ADCS> Sensors::converted_temps;
 std::array<float, BMS::EXTERNAL_ADCS> Sensors::offset_batteries_temps = {
@@ -9,11 +9,10 @@ std::array<float, BMS::EXTERNAL_ADCS> Sensors::offset_batteries_temps = {
 };
 Sensors::TURNO Sensors::turno = CELLS;
 
-LinearSensor<float> *Sensors::current_sensor = nullptr;
-uint8_t Sensors::voltage_adc_id;
-float Sensors::current_reading;
-float Sensors::voltage_reading;
+// Sensors
+std::unique_ptr<CurrentSensor<Sensors::slope>> Sensors::current_sensor = nullptr;
 
+// Flags
 bool Sensors::cell_conversion_flag = false;
 bool Sensors::current_reading_flag = false;
 
@@ -43,34 +42,15 @@ void Sensors::cell_conversion() {
     }
 }
 
-void Sensors::read_current() {
-    voltage_reading = ADC::get_value(voltage_adc_id);
-    current_sensor->read();
-}
-
-void Sensors::zeroing() {
-    float average_voltage = 0.0;
-    for (int i = 0; i < ZEROING_MEASURE; ++i) {
-        read_current();
-        average_voltage += voltage_reading;
-    }
-    average_voltage /= ZEROING_MEASURE;
-    offset = -slope * average_voltage;
-    current_sensor->set_offset(offset);
-}
-
 void Sensors::init() {
     bmsh = new BMSH(SPI::spi3);
-
-    current_sensor =
-        new LinearSensor<float>(PA0, slope, offset, &current_reading);
-    voltage_adc_id = current_sensor->get_id();
+    current_sensor = std::make_unique<CurrentSensor<slope>>();
 }
 
 void Sensors::start() {
     bmsh->initialize();
 
-    zeroing();
+    current_sensor->zeroing();
 
     Time::register_low_precision_alarm(11,
                                        [&]() { cell_conversion_flag = true; });
@@ -84,7 +64,7 @@ void Sensors::update() {
         cell_conversion_flag = false;
     }
     if (current_reading_flag) {
-        read_current();
+        current_sensor->read_current();
         current_reading_flag = false;
     }
 }
