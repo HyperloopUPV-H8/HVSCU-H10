@@ -10,11 +10,14 @@ std::array<float, BMS::EXTERNAL_ADCS> Sensors::offset_batteries_temps = {
 Sensors::TURNO Sensors::turno = CELLS;
 
 // Sensors
-std::unique_ptr<CurrentSensor<Sensors::slope>> Sensors::current_sensor = nullptr;
+std::unique_ptr<CurrentSensor> Sensors::current_sensor = nullptr;
+std::unique_ptr<VoltageSensor> Sensors::voltage_sensor = nullptr;
+
 
 // Flags
 bool Sensors::cell_conversion_flag = false;
 bool Sensors::current_reading_flag = false;
+bool Sensors::voltage_reading_flag = false;
 
 void Sensors::cell_conversion() {
     bmsh->wake_up();
@@ -44,7 +47,7 @@ void Sensors::cell_conversion() {
 
 void Sensors::init() {
     bmsh = new BMSH(SPI::spi3);
-    current_sensor = std::make_unique<CurrentSensor<slope>>();
+    current_sensor = std::make_unique<CurrentSensor>();
 }
 
 void Sensors::start() {
@@ -66,5 +69,9 @@ void Sensors::update() {
     if (current_reading_flag) {
         current_sensor->read_current();
         current_reading_flag = false;
+    }
+    if (voltage_reading_flag) {
+        voltage_sensor->read_voltage();
+        voltage_reading_flag = false;
     }
 }

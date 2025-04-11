@@ -81,8 +81,10 @@ void Control::add_orders() {
         []() { Actuators::imd_bypass->toggle(); });
     orders[State::OPERATIONAL].push_back(imd_bypass_order);
 
-    auto zeroing = new HVSCUOrder<Comms::IDOrder::ZEROING>(
-        []() { Sensors::current_sensor->zeroing(); });
+    auto zeroing = new HVSCUOrder<Comms::IDOrder::ZEROING>([]() {
+        Sensors::current_sensor->zeroing();
+        Sensors::voltage_sensor->zeroing();
+    });
     orders[State::OPERATIONAL].push_back(zeroing);
 }
 
@@ -112,6 +114,12 @@ void Control::add_packets() {
                        Sensors::current_sensor->get_voltage(),
                        Sensors::current_sensor->get_current());
     packets[State::OPERATIONAL].push_back(current_packet);
+
+    auto voltage_packet =
+        new HeapPacket(static_cast<uint16_t>(Comms::IDPacket::VOLTAGE),
+                       Sensors::voltage_sensor->get_raw(),
+                       Sensors::voltage_sensor->get_voltage());
+    packets[State::OPERATIONAL].push_back(voltage_packet);
 }
 
 void Control::update() {
