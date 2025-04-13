@@ -47,6 +47,7 @@ void Sensors::cell_conversion() {
 void Sensors::init() {
     bmsh = new BMSH(SPI::spi3);
     current_sensor = std::make_unique<CurrentSensor>();
+    voltage_sensor = std::make_unique<VoltageSensor>();
 }
 
 void Sensors::start() {

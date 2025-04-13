@@ -24,8 +24,8 @@ class VoltageSensor {
 
    public:
     VoltageSensor() : offset(0) {
-        sensor = std::make_unique<LinearSensor<float>>(BATTERY_VOLTAGE_SENSOR, slope, offset,
-                                                       &voltage_reading);
+        sensor = std::make_unique<LinearSensor<float>>(
+            BATTERY_VOLTAGE_SENSOR, slope, offset, &voltage_reading);
         adc_id = sensor->get_id();
     }
 
@@ -33,7 +33,7 @@ class VoltageSensor {
         float average_voltage = 0.0;
         for (int i = 0; i < ZEROING_MEASURE; ++i) {
             read_voltage();
-            average_voltage += voltage_reading;
+            average_voltage += raw_reading;
         }
         average_voltage /= ZEROING_MEASURE;
         offset = -slope * average_voltage;
@@ -41,7 +41,7 @@ class VoltageSensor {
     }
 
     void read_voltage() {
-        voltage_reading = ADC::get_value(adc_id);
+        raw_reading = ADC::get_value(adc_id);
         sensor->read();
     }
 
