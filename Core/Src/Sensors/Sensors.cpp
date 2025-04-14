@@ -15,9 +15,11 @@ std::unique_ptr<VoltageSensor> Sensors::voltage_sensor = nullptr;
 
 // Flags
 bool Sensors::cell_conversion_flag = false;
+#endif
 bool Sensors::current_reading_flag = false;
 bool Sensors::voltage_reading_flag = false;
 
+#if BATTERIES_CONNECTED
 void Sensors::cell_conversion() {
     bmsh->wake_up();
     if (turno == CELLS) {
@@ -39,10 +41,13 @@ void Sensors::cell_conversion() {
         converted_temps[i] = val;
 #endif
     }
+    total_voltage = 0.0;
     for (auto &adc : bmsh->external_adcs) {
         adc.battery.update_data();
+        total_voltage += adc.battery.total_voltage;
     }
 }
+#endif
 
 void Sensors::init() {
     bmsh = new BMSH(SPI::spi3);
@@ -55,8 +60,10 @@ void Sensors::start() {
 
     current_sensor->zeroing();
 
+#if BATTERIES_CONNECTED
     Time::register_low_precision_alarm(11,
                                        [&]() { cell_conversion_flag = true; });
+#endif
     Time::register_low_precision_alarm(10,
                                        [&]() { current_reading_flag = true; });
     Time::register_low_precision_alarm(10,
@@ -64,10 +71,12 @@ void Sensors::start() {
 }
 
 void Sensors::update() {
+#if BATTERIES_CONNECTED
     if (cell_conversion_flag) {
         cell_conversion();
         cell_conversion_flag = false;
     }
+#endif
     if (current_reading_flag) {
         current_sensor->read_current();
         current_reading_flag = false;

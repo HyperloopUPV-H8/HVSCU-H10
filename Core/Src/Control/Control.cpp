@@ -37,7 +37,7 @@ void Control::add_transitions() {
 
     state_machine.add_enter_action(
         [this]() {
-            Actuators::open_contactors();
+            Actuators::open_HV();
             Actuators::led_fault->turn_on();
         },
         State::FAULT);
@@ -63,14 +63,41 @@ void Control::add_transitions() {
 
 void Control::add_orders() {
     auto open_contactor_order =
-        new HVSCUOrder<Comms::IDOrder::OPEN_CONTACTORS_ID>(
-            []() { Actuators::open_contactors(); });
+        new HVSCUOrder<Comms::IDOrder::OPEN_CONTACTORS_ID>([this]() {
+            cancel_timeouts();
+            Actuators::open_HV();
+        });
     orders[State::OPERATIONAL].push_back(open_contactor_order);
     orders[State::FAULT].push_back(open_contactor_order);
 
     auto close_contactor_order =
-        new HVSCUOrder<Comms::IDOrder::CLOSE_CONTACTORS_ID>(
-            []() { Actuators::close_contactors(); });
+        new HVSCUOrder<Comms::IDOrder::CLOSE_CONTACTORS_ID>([this]() {
+            Actuators::start_precharge();
+#if SMART_PRECHARGE
+            uint8_t precharge_timer_id = 0;
+            uint8_t precharge_timeout_id =
+                Time::set_timeout(4000, [precharge_timer_id, this]() {
+                    Time::unregister_mid_precision_alarm(precharge_timer_id);
+                    Actuators::open_HV();
+                    state_machine.force_change_state(State::FAULT);
+                });
+            precharge_timer_id = Time::register_mid_precision_alarm(
+                100, [precharge_timer_id, precharge_timeout_id]() {
+                    // float average_PPUs_voltage = (Sensors::PPU1_voltage +
+                    // Sensors::PPU2_voltage) / 2; Use the above when two PPUs
+                    // work well
+                    float average_PPUs_voltage = Sensors::PPU2_voltage;
+                    if (average_PPUs_voltage / Sensors::total_voltage >
+                        PERCENTAGE_TO_FINISH_PRECHARGE) {
+                        cancel_timeouts();
+                        Actuators::close_HV();
+                    }
+                });
+#else
+            contactors_timeout_id =
+                Time::set_timeout(3000, []() { Actuators::close_HV(); });
+#endif
+        });
     orders[State::OPERATIONAL].push_back(close_contactor_order);
 
     auto sdc_obccu_order = new HVSCUOrder<Comms::IDOrder::SDC_OBCCU_ID>(

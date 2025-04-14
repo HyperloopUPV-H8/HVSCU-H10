@@ -11,12 +11,12 @@ class HVSCUOrderBase {
 template <Comms::IDOrder id>
 class HVSCUOrder : public HVSCUOrderBase {
    private:
-    void (*callback)(void);
+    std::function<void()> callback;
     static bool received;
     HeapOrder* order;
 
    public:
-    HVSCUOrder(void (*callback)(void));
+    HVSCUOrder(std::function<void()> callback);
     void check_order() override;
 };
 
@@ -24,7 +24,7 @@ template <Comms::IDOrder id>
 bool HVSCUOrder<id>::received = false;
 
 template <Comms::IDOrder id>
-HVSCUOrder<id>::HVSCUOrder(void (*callback)(void)) : callback(callback) {
+HVSCUOrder<id>::HVSCUOrder(std::function<void()> callback) : callback(callback) {
     order = new HeapOrder(static_cast<uint16_t>(id), []() { received = true; });
 }
 
