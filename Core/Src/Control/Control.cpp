@@ -74,20 +74,16 @@ void Control::add_orders() {
         new HVSCUOrder<Comms::IDOrder::CLOSE_CONTACTORS_ID>([this]() {
             Actuators::start_precharge();
 #if SMART_PRECHARGE
-            uint8_t precharge_timer_id = 0;
-            uint8_t precharge_timeout_id =
-                Time::set_timeout(4000, [precharge_timer_id, this]() {
-                    Time::unregister_mid_precision_alarm(precharge_timer_id);
-                    Actuators::open_HV();
-                    state_machine.force_change_state(State::FAULT);
-                });
-            precharge_timer_id = Time::register_mid_precision_alarm(
-                100, [precharge_timer_id, precharge_timeout_id]() {
-                    // float average_PPUs_voltage = (Sensors::PPU1_voltage +
-                    // Sensors::PPU2_voltage) / 2; Use the above when two PPUs
-                    // work well
-                    float average_PPUs_voltage = Sensors::PPU2_voltage;
-                    if (average_PPUs_voltage / Sensors::total_voltage >
+            precharge_timer_id = 0;
+            precharge_timeout_id = Time::set_timeout(4000, [this]() {
+                Time::unregister_mid_precision_alarm(precharge_timer_id);
+                Actuators::open_HV();
+                state_machine.force_change_state(State::FAULT);
+            });
+            precharge_timer_id =
+                Time::register_mid_precision_alarm(100, [this]() {
+                    if (*Sensors::voltage_sensor->get_voltage() /
+                            Sensors::total_voltage >
                         PERCENTAGE_TO_FINISH_PRECHARGE) {
                         cancel_timeouts();
                         Actuators::close_HV();

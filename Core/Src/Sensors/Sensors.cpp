@@ -8,6 +8,7 @@ std::array<float, BMS::EXTERNAL_ADCS> Sensors::offset_batteries_temps = {
     1273.9, 1273.9, 1273.9, 1273.9, 1273.9,
 };
 Sensors::TURNO Sensors::turno = CELLS;
+float Sensors::total_voltage = 0.0;
 
 // Sensors
 std::unique_ptr<CurrentSensor> Sensors::current_sensor = nullptr;
@@ -15,7 +16,6 @@ std::unique_ptr<VoltageSensor> Sensors::voltage_sensor = nullptr;
 
 // Flags
 bool Sensors::cell_conversion_flag = false;
-#endif
 bool Sensors::current_reading_flag = false;
 bool Sensors::voltage_reading_flag = false;
 

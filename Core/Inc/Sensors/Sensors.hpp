@@ -25,6 +25,7 @@ class Sensors {
     // Old BMS-LIB relative stuff
     static BMSH *bmsh;
     static std::array<float, BMS::EXTERNAL_ADCS> converted_temps;
+    static float total_voltage;
 
     static void init();
     static void start();
