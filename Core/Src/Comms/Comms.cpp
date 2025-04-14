@@ -8,4 +8,6 @@ void Comms::start() {
     packets_endpoint =
         new DatagramSocket(IPV4(HVSCU_IP), PACKETS_ENDPOINT_PORT,
                            IPV4(CONTROL_SATION_IP), PACKETS_ENDPOINT_PORT);
+    bmsl = new ServerSocket(IPV4(HVSCU_IP), BMSL_ENDPOINT);
+    lcu = new ServerSocket(IPV4(HVSCU_IP), LCU_ENDPOINT);
 }
