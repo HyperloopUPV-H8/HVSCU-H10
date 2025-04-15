@@ -1,6 +1,9 @@
 #include "Comms/Comms.hpp"
 
 ServerSocket* Comms::control_station = nullptr;
+ServerSocket* Comms::lcu = nullptr;
+ServerSocket* Comms::bmsl = nullptr;
+
 DatagramSocket* Comms::packets_endpoint = nullptr;
 
 void Comms::start() {

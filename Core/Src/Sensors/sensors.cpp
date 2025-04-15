@@ -14,6 +14,9 @@ uint8_t Sensors::voltage_adc_id;
 float Sensors::current_reading;
 float Sensors::voltage_reading;
 
+bool Sensors::cell_conversion_flag = false;
+bool Sensors::current_reading_flag = false;
+
 void Sensors::start() {
     bmsh = new BMSH(SPI::spi3);
 
@@ -34,7 +37,7 @@ void Sensors::update() {
     }
     if (current_reading_flag) {
         read_current();
-        current_reading_flag - false;
+        current_reading_flag = false;
     }
 }
 
@@ -57,6 +60,8 @@ void Sensors::cell_conversion() {
                        gain_batteries_temperatures +
                    offset_batteries_temps[i];
         converted_temps[i] = val;
+    }
+#else
     }
 #endif
     for (auto &adc : bmsh->external_adcs) {

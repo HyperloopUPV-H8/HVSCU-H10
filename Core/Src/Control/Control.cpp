@@ -73,13 +73,13 @@ void Control::add_orders() {
             []() { Actuators::close_contactors(); });
     orders[State::OPERATIONAL].push_back(close_contactor_order);
 
-    auto sdc_obccu_order = new HVSCUOrder<Comms::IDOrder::SDC_OBCCU_ID>(
-        []() { Actuators::sdc_obccu->toggle(); });
-    orders[State::OPERATIONAL].push_back(sdc_obccu_order);
+    // auto sdc_obccu_order = new HVSCUOrder<Comms::IDOrder::SDC_OBCCU_ID>(
+    //     []() { Actuators::sdc_obccu->toggle(); });
+    // orders[State::OPERATIONAL].push_back(sdc_obccu_order);
 
-    auto imd_bypass_order = new HVSCUOrder<Comms::IDOrder::IMD_BYPASS_ID>(
-        []() { Actuators::imd_bypass->toggle(); });
-    orders[State::OPERATIONAL].push_back(imd_bypass_order);
+    // auto imd_bypass_order = new HVSCUOrder<Comms::IDOrder::IMD_BYPASS_ID>(
+    //     []() { Actuators::imd_bypass->toggle(); });
+    // orders[State::OPERATIONAL].push_back(imd_bypass_order);
 }
 
 void Control::add_packets() {

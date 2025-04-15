@@ -4,9 +4,9 @@
 class Sensors {
    private:
 #if SENSOR_CHARACTERIZATION
-    static const float slope = 1.0;
+    static constexpr float slope = 1.0;
 #else
-    static const float slope = 1.0;
+    static constexpr float slope = 1.0;
 #endif
     static float offset;
     constexpr static float gain_batteries_temperatures = -795.45;
