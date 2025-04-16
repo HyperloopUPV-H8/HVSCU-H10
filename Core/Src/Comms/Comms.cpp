@@ -7,7 +7,7 @@ ServerSocket* Comms::bmsl = nullptr;
 DatagramSocket* Comms::packets_endpoint = nullptr;
 
 void Comms::start() {
-    control_station = new ServerSocket(IPV4(HVSCU_IP), CONTROL_STATION_PORT);
+    control_station = new ServerSocket(IPV4(HVSCU_IP), CONTROL_STATION_PORT,1500,500,10);
     packets_endpoint =
         new DatagramSocket(IPV4(HVSCU_IP), PACKETS_ENDPOINT_PORT,
                            IPV4(CONTROL_SATION_IP), PACKETS_ENDPOINT_PORT);

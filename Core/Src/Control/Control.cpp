@@ -11,7 +11,7 @@ Control::Control() : state_machine(0), orders(), send_packets_flag(false) {
     add_states();
     add_transitions();
 
-    STLIB::start(Comms::HVSCU_IP);
+    STLIB::start(Comms::HVSCU_IP,"255.255.255.0");
 
     Comms::start();
     add_orders();
