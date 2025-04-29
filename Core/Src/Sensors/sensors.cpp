@@ -1,12 +1,6 @@
 #include "Sensors/Sensors.hpp"
 
 float Sensors::offset = -153.898815693102;
-BMSH *Sensors::bmsh;
-std::array<float, BMS::EXTERNAL_ADCS> Sensors::converted_temps;
-std::array<float, BMS::EXTERNAL_ADCS> Sensors::offset_batteries_temps = {
-    1273.9, 1273.9, 1273.9, 1273.9, 1273.9,
-    1273.9, 1273.9, 1273.9, 1273.9, 1273.9,
-};
 Sensors::TURNO Sensors::turno = CELLS;
 
 LinearSensor<float> *Sensors::current_sensor = nullptr;
@@ -18,9 +12,6 @@ bool Sensors::cell_conversion_flag = false;
 bool Sensors::current_reading_flag = false;
 
 void Sensors::cell_conversion() {
-    bmsh->wake_up();
-    if (turno == CELLS) {
-        bmsh->update_cell_voltages();
 #if READING_BATTERY_TEMPERATURES
         turno = TEMPS;
     } else {
@@ -37,11 +28,8 @@ void Sensors::cell_conversion() {
                    offset_batteries_temps[i];
         converted_temps[i] = val;
 #endif
-    }
-    for (auto &adc : bmsh->external_adcs) {
-        adc.battery.update_data();
-    }
 }
+
 
 void Sensors::read_current() {
     voltage_reading = ADC::get_value(voltage_adc_id);
@@ -60,15 +48,12 @@ void Sensors::zeroing() {
 }
 
 void Sensors::init() {
-    bmsh = new BMSH(SPI::spi3);
-
     current_sensor =
         new LinearSensor<float>(PA0, slope, offset, &current_reading);
     voltage_adc_id = current_sensor->get_id();
 }
 
 void Sensors::start() {
-    bmsh->initialize();
 
     zeroing();
 

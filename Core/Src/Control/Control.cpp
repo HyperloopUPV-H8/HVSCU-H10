@@ -87,26 +87,6 @@ void Control::add_orders() {
 }
 
 void Control::add_packets() {
-    for (int i = 0; i < 10; ++i) {
-        auto battery_packet = new HeapPacket(
-            static_cast<uint16_t>(Comms::IDPacket::BATTERY_1) + i,
-            &Sensors::bmsh->external_adcs[i].battery.SOC,
-            Sensors::bmsh->external_adcs[i].battery.cells[0],
-            Sensors::bmsh->external_adcs[i].battery.cells[1],
-            Sensors::bmsh->external_adcs[i].battery.cells[2],
-            Sensors::bmsh->external_adcs[i].battery.cells[3],
-            Sensors::bmsh->external_adcs[i].battery.cells[4],
-            Sensors::bmsh->external_adcs[i].battery.cells[5],
-            &Sensors::bmsh->external_adcs[i].battery.minimum_cell,
-            &Sensors::bmsh->external_adcs[i].battery.maximum_cell,
-            &Sensors::converted_temps[i],
-            Sensors::bmsh->external_adcs[i].battery.temperature2,
-            &Sensors::bmsh->external_adcs[i].battery.is_balancing,
-            &Sensors::bmsh->external_adcs[i].battery.total_voltage);
-
-        packets[State::OPERATIONAL].push_back(battery_packet);
-    }
-
     auto current_packet =
         new HeapPacket(static_cast<uint16_t>(Comms::IDPacket::CURRENT),
                        &Sensors::voltage_reading, &Sensors::current_reading);

@@ -1,6 +1,6 @@
-#include "BMS-LIB.hpp"
+//#include "BMS-LIB.hpp"
 #include "HVSCUConfig.hpp"
-
+#include "ST-LIB.hpp"
 #define ZEROING_MEASURE 100000
 
 class Sensors {
@@ -12,7 +12,6 @@ class Sensors {
 #endif
     static float offset;
     constexpr static float gain_batteries_temperatures = -795.45;
-    static std::array<float, BMS::EXTERNAL_ADCS> offset_batteries_temps;
     static LinearSensor<float> *current_sensor;
     static uint8_t voltage_adc_id;
     static bool cell_conversion_flag;
@@ -25,8 +24,6 @@ class Sensors {
     static void read_current();
 
    public:
-    static BMSH *bmsh;
-    static std::array<float, BMS::EXTERNAL_ADCS> converted_temps;
 
     static float current_reading;
     static float voltage_reading;
