@@ -75,7 +75,7 @@ struct PFM {
         check_pfm();
     }
 
-    static void init(Pin positive, Pin negative, Pin buffer, Pin reset) {
+    static void init(Pin &positive, Pin &negative, Pin &buffer, Pin &reset) {
         pfm = new DualPWM(positive, negative);
         packet = new HeapPacket(600, &buffer_status, &reset_status, &dead_time,
                                 &frequency, &pfm_status, &switching_status);
@@ -83,10 +83,6 @@ struct PFM {
         OBCPU_reset = new DigitalOutput(reset);
 
         pfm->set_duty_cycle(50.0);
-        update_data();
-
-        buffer_en->turn_on();  // Disable buffer (is low_active)
-        OBCPU_reset->turn_off();
     }
 
     static void check_pfm() {
@@ -102,7 +98,7 @@ struct PFM {
 DualPWM *PFM::pfm = nullptr;
 HeapPacket *PFM::packet = nullptr;
 DigitalOutput *PFM::buffer_en = nullptr;
-PFM::BUFFER_STATUS PFM::buffer_status = PFM::BUFFER_STATUS::DISABLED;
+PFM::BUFFER_STATUS PFM::buffer_status = PFM::BUFFER_STATUS::ENABLED;
 DigitalOutput *PFM::OBCPU_reset = nullptr;
 bool PFM::reset_status = false;
 uint PFM::dead_time = 100;
@@ -160,8 +156,8 @@ int main(void) {
     PFM::init(PIN_PWM_P, PIN_PWM_N, PIN_PWM_BUFFER_EN, PIN_OBCPU_RESET);
 
     input_current_sensor = new OBCPUSensor(PIN_INPUT_CURRENT_OBCPU, 601, 1, 0);
-    output_current_sensor =
-        new OBCPUSensor(PIN_OUTPUT_CURRENT_OBCPU, 602, 1, 0);
+    output_current_sensor = new OBCPUSensor(
+        PIN_OUTPUT_CURRENT_OBCPU, 602, 2.030029306735260, -1.449986892377240);
     input_voltage_sensor = new OBCPUSensor(PIN_INPUT_VOLTAGE_OBCPU, 603, 1, 0);
     output_voltage_sensor = new OBCPUSensor(
         PIN_OUTPUT_VOLTAGE_OBCPU, 604, 163.498533508976, -12.0197125310396);
@@ -194,6 +190,9 @@ int main(void) {
         packets_endpoint->send_packet(output_current_sensor->packet);
         packets_endpoint->send_packet(output_voltage_sensor->packet);
     });
+
+    PFM::update_data();
+    PFM::toggle_buffer(); // Disable buffer (is low_active)
 
     while (1) {
         STLIB::update();
