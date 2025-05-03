@@ -4,15 +4,13 @@
 #include "lwip.h"
 #endif
 
-// #include "Comms/Comms.hpp"
 #include "Control/Control.hpp"
-
 
 int main(void) {
 #ifdef SIM_ON
     SharedMemory::start("shm_gpio_HVSCU", "shm_sm_HVSCU");
 #endif
-    Control control;
+    HVSCU::Control control;
 
     while (1) {
         control.update();

@@ -3,6 +3,7 @@
 #include "Actuators/Actuators.hpp"
 #include "Comms/Comms.hpp"
 #include "Sensors/Sensors.hpp"
+namespace HVSCU {
 
 Control::Control() : state_machine(0), orders(), send_packets_flag(false) {
     Actuators::start();
@@ -62,22 +63,20 @@ void Control::add_transitions() {
 }
 
 void Control::add_orders() {
-    auto open_contactor_order =
-        new HVSCUOrder<Comms::IDOrder::OPEN_CONTACTORS_ID>(
-            []() { Actuators::open_contactors(); });
+    auto open_contactor_order = new Order<Comms::IDOrder::OPEN_CONTACTORS_ID>(
+        []() { Actuators::open_contactors(); });
     orders[State::OPERATIONAL].push_back(open_contactor_order);
     orders[State::FAULT].push_back(open_contactor_order);
 
-    auto close_contactor_order =
-        new HVSCUOrder<Comms::IDOrder::CLOSE_CONTACTORS_ID>(
-            []() { Actuators::close_contactors(); });
+    auto close_contactor_order = new Order<Comms::IDOrder::CLOSE_CONTACTORS_ID>(
+        []() { Actuators::close_contactors(); });
     orders[State::OPERATIONAL].push_back(close_contactor_order);
 
-    auto sdc_obccu_order = new HVSCUOrder<Comms::IDOrder::SDC_OBCCU_ID>(
+    auto sdc_obccu_order = new Order<Comms::IDOrder::SDC_OBCCU_ID>(
         []() { Actuators::sdc_obccu->toggle(); });
     orders[State::OPERATIONAL].push_back(sdc_obccu_order);
 
-    auto imd_bypass_order = new HVSCUOrder<Comms::IDOrder::IMD_BYPASS_ID>(
+    auto imd_bypass_order = new Order<Comms::IDOrder::IMD_BYPASS_ID>(
         []() { Actuators::imd_bypass->toggle(); });
     orders[State::OPERATIONAL].push_back(imd_bypass_order);
 }
@@ -100,13 +99,8 @@ void Control::add_packets() {
             &Sensors::bmsh->external_adcs[i].battery.is_balancing,
             &Sensors::bmsh->external_adcs[i].battery.total_voltage);
 
-        packets[State::OPERATIONAL].push_back(battery_packet);
+        Comms::add_packet(battery_packet);
     }
-
-    auto current_packet =
-        new HeapPacket(static_cast<uint16_t>(Comms::IDPacket::CURRENT),
-                       &Sensors::voltage_reading, &Sensors::current_reading);
-    packets[State::OPERATIONAL].push_back(current_packet);
 }
 
 void Control::update() {
@@ -120,10 +114,8 @@ void Control::update() {
     }
 
     if (send_packets_flag) {
-        for (auto &packet :
-             packets[static_cast<State>(state_machine.current_state)]) {
-            Comms::packets_endpoint->send_packet(*packet);
-        }
+        Comms::send_packets();
         send_packets_flag = false;
     }
 }
+}  // namespace HVSCU

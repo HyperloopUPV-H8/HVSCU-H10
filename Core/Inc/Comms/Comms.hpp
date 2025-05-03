@@ -2,7 +2,10 @@
 
 #include "ST-LIB.hpp"
 
+namespace HVSCU {
 class Comms {
+    static std::vector<HeapPacket*> packets;
+
    public:
     enum class IDOrder : uint16_t {
         CLOSE_CONTACTORS_ID = 900,
@@ -30,7 +33,8 @@ class Comms {
         BATTERY_16 = 925,
         BATTERY_17 = 926,
         BATTERY_18 = 927,
-        CURRENT = 930
+        VOLTAGE = 930,
+        CURRENT = 931
     };
 
     static const uint16_t CONTROL_STATION_PORT = 50500;
@@ -42,4 +46,7 @@ class Comms {
     static DatagramSocket* packets_endpoint;
 
     static void start();
+    static void add_packet(HeapPacket* packet);
+    static void send_packets();
 };
+}
