@@ -5,7 +5,7 @@
 #include "Sensors/Sensors.hpp"
 namespace HVSCU {
 
-Control::Control() : state_machine(0), orders(), send_packets_flag(false) {
+Control::Control() : state_machine(), orders(), send_packets_flag(false) {
     Actuators::start();
     Sensors::start();
 
@@ -13,6 +13,8 @@ Control::Control() : state_machine(0), orders(), send_packets_flag(false) {
     add_transitions();
 
     STLIB::start(Comms::HVSCU_IP);
+
+    add_protections();
 
     Comms::start();
     add_orders();
@@ -62,6 +64,13 @@ void Control::add_transitions() {
 #endif
 }
 
+void Control::add_protections() {
+    ProtectionManager::link_state_machine(state_machine, State::FAULT);
+
+    add_protection(&Sensors::voltage_sensor->reading, Boundary<float, ABOVE>{320});
+    add_protection(&Sensors::current_sensor->reading, Boundary<float, OUT_OF_RANGE>{-15, 70});
+}
+
 void Control::add_orders() {
     auto open_contactor_order =
         new Order<Comms::IDOrder::OPEN_CONTACTORS_ID>([this]() {
@@ -80,7 +89,7 @@ void Control::add_orders() {
                 Time::set_timeout(4000, [precharge_timer_id, this]() {
                     Time::unregister_mid_precision_alarm(precharge_timer_id);
                     Actuators::open_HV();
-                    state_machine.force_change_state(State::FAULT);
+                    ProtectionManager::fault_and_propagate();
                 });
             precharge_timer_id = Time::register_mid_precision_alarm(
                 100, [precharge_timer_id, precharge_timeout_id, this]() {
@@ -133,6 +142,7 @@ void Control::update() {
     STLIB::update();
     Sensors::update();
     state_machine.check_transitions();
+    ProtectionManager::check_protections();
 
     for (auto &order :
          orders[static_cast<State>(state_machine.current_state)]) {
