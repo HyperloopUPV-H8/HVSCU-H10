@@ -2,6 +2,7 @@
 
 #include "Comms/Comms.hpp"
 #include "ST-LIB.hpp"
+
 namespace HVSCU {
 class OrderBase {
    public:
@@ -11,12 +12,12 @@ class OrderBase {
 template <Comms::IDOrder id>
 class Order : public OrderBase {
    private:
-    void (*callback)(void);
+    std::function<void()> callback;
     static bool received;
     HeapOrder* order;
 
    public:
-    Order(void (*callback)(void));
+    Order(std::function<void()> callback);
     void check_order() override;
 };
 
@@ -24,7 +25,7 @@ template <Comms::IDOrder id>
 bool Order<id>::received = false;
 
 template <Comms::IDOrder id>
-Order<id>::Order(void (*callback)(void)) : callback(callback) {
+Order<id>::Order(std::function<void()> callback) : callback(callback) {
     order = new HeapOrder(static_cast<uint16_t>(id), []() { received = true; });
 }
 

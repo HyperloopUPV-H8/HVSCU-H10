@@ -17,6 +17,7 @@ std::array<float, BMS::EXTERNAL_ADCS> Sensors::offset_batteries_temps = {
 };
 bool Sensors::cell_conversion_flag{false};
 Sensors::TURNO Sensors::turno = CELLS;
+float Sensors::total_voltage{};
 
 void Sensors::start() {
     voltage_sensor = new ADCLinearSensor(

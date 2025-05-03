@@ -14,8 +14,6 @@ class Sensors {
     static constexpr float CURRENT_SLOPE{1.0};
     static constexpr float CURRENT_OFFSET{};
 
-    static ADCLinearSensor *voltage_sensor;
-    static ADCLinearSensor *current_sensor;
     static bool reading_sensors_flag;
 
     // Old BMS-LIB stuff
@@ -26,8 +24,12 @@ class Sensors {
     static TURNO turno;
 
    public:
+    static ADCLinearSensor *voltage_sensor;
+    static ADCLinearSensor *current_sensor;
+
     static BMSH *bmsh;
     static std::array<float, BMS::EXTERNAL_ADCS> converted_temps;
+    static float total_voltage;
 
     static void start();
     static void update();

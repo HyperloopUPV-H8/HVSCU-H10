@@ -31,24 +31,23 @@ void Actuators::start() {
 #endif
 }
 
-void Actuators::open_contactors() {
-    if (contactors_timeout_id) Time::cancel_timeout(contactors_timeout_id);
+void Actuators::open_HV() {
     contactor_discharge->close();
     contactor_low->open();
     contactor_high->open();
     contactor_precharge->open();
 }
 
-void Actuators::close_contactors() {
-    if (contactors_timeout_id) Time::cancel_timeout(contactors_timeout_id);
+void Actuators::close_HV() {
+    contactor_discharge->open();
+    contactor_low->close();
+    contactor_precharge->open();
+    contactor_high->close();
+}
+
+void Actuators::start_precharge() {
     contactor_discharge->open();
     contactor_low->close();
     contactor_precharge->close();
     contactor_high->open();
-    led_nucleo->turn_on();
-    contactors_timeout_id = Time::set_timeout(3000, []() {
-        contactor_precharge->open();
-        contactor_high->close();
-        led_nucleo->turn_off();
-    });
 }

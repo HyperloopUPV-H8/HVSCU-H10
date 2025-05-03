@@ -5,11 +5,12 @@
 
 namespace HVSCU {
 class ADCLinearSensor {
-    float reading{};
     LinearSensor<float> sensor;
     HeapPacket packet{};
 
    public:
+    float reading{};
+
     ADCLinearSensor(Pin& pin, uint16_t id, float slope, float offset)
         : sensor{pin, slope, offset, reading}, packet{id, &reading} {}
 

@@ -19,6 +19,8 @@ class Actuators {
     static DigitalOutput* led_nucleo;
 
     static void start();
-    static void open_contactors();
-    static void close_contactors();
+
+    static void open_HV();
+    static void close_HV();
+    static void start_precharge();
 };
