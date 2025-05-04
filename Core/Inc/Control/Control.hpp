@@ -36,7 +36,6 @@ class Control {
     void add_transitions();
     void add_orders();
     void add_protections();
-    void add_packets();
 
    public:
     Control();

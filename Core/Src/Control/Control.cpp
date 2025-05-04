@@ -18,8 +18,7 @@ Control::Control() : state_machine(), orders(), send_packets_flag(false) {
 
     Comms::start();
     add_orders();
-    Sensors::bmsh->initialize();
-    add_packets();
+    // Sensors::bmsh->initialize();
 
     Time::register_low_precision_alarm(17, [&]() { send_packets_flag = true; });
 }
@@ -88,15 +87,14 @@ void Control::add_orders() {
         new Order<Comms::IDOrder::CLOSE_CONTACTORS_ID>([this]() {
             Actuators::start_precharge();
 #if SMART_PRECHARGE
-            uint8_t precharge_timer_id = 0;
-            uint8_t precharge_timeout_id =
-                Time::set_timeout(4000, [precharge_timer_id, this]() {
-                    Time::unregister_mid_precision_alarm(precharge_timer_id);
-                    Actuators::open_HV();
-                    ProtectionManager::fault_and_propagate();
-                });
-            precharge_timer_id = Time::register_mid_precision_alarm(
-                100, [precharge_timer_id, precharge_timeout_id, this]() {
+            precharge_timer_id = 0;
+            precharge_timeout_id = Time::set_timeout(4000, [this]() {
+                Time::unregister_mid_precision_alarm(precharge_timer_id);
+                Actuators::open_HV();
+                ProtectionManager::fault_and_propagate();
+            });
+            precharge_timer_id =
+                Time::register_mid_precision_alarm(100, [this]() {
                     if (Sensors::voltage_sensor->reading /
                             Sensors::total_voltage >
                         PERCENTAGE_TO_FINISH_PRECHARGE) {
@@ -118,28 +116,6 @@ void Control::add_orders() {
     auto imd_bypass_order = new Order<Comms::IDOrder::IMD_BYPASS_ID>(
         []() { Actuators::imd_bypass->toggle(); });
     orders[State::OPERATIONAL].push_back(imd_bypass_order);
-}
-
-void Control::add_packets() {
-    for (int i = 0; i < 10; ++i) {
-        auto battery_packet = new HeapPacket(
-            static_cast<uint16_t>(Comms::IDPacket::BATTERY_1) + i,
-            &Sensors::bmsh->external_adcs[i].battery.SOC,
-            Sensors::bmsh->external_adcs[i].battery.cells[0],
-            Sensors::bmsh->external_adcs[i].battery.cells[1],
-            Sensors::bmsh->external_adcs[i].battery.cells[2],
-            Sensors::bmsh->external_adcs[i].battery.cells[3],
-            Sensors::bmsh->external_adcs[i].battery.cells[4],
-            Sensors::bmsh->external_adcs[i].battery.cells[5],
-            &Sensors::bmsh->external_adcs[i].battery.minimum_cell,
-            &Sensors::bmsh->external_adcs[i].battery.maximum_cell,
-            &Sensors::converted_temps[i],
-            Sensors::bmsh->external_adcs[i].battery.temperature2,
-            &Sensors::bmsh->external_adcs[i].battery.is_balancing,
-            &Sensors::bmsh->external_adcs[i].battery.total_voltage);
-
-        Comms::add_packet(battery_packet);
-    }
 }
 
 void Control::update() {
