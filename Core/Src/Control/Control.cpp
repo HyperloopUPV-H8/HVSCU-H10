@@ -5,12 +5,15 @@
 #include "Sensors/Sensors.hpp"
 namespace HVSCU {
 
-Control::Control() : state_machine(), orders(), send_packets_flag(false) {
+Control::Control()
+    : general_state_machine{},
+      operational_state_machine{},
+      orders{},
+      send_packets_flag{false} {
     Actuators::start();
     Sensors::start();
 
-    add_states();
-    add_transitions();
+    set_state_machines();
 
     add_protections();
 
@@ -24,44 +27,54 @@ Control::Control() : state_machine(), orders(), send_packets_flag(false) {
     Time::register_low_precision_alarm(17, [&]() { send_packets_flag = true; });
 }
 
-void Control::add_states() {
-    state_machine.add_state(State::CONNECTING);
-    state_machine.add_state(State::OPERATIONAL);
-    state_machine.add_state(State::FAULT);
-}
+void Control::set_state_machines() {
+    general_state_machine.add_state(GeneralSMState::CONNECTING);
+    general_state_machine.add_state(GeneralSMState::OPERATIONAL);
+    general_state_machine.add_state(GeneralSMState::FAULT);
 
-void Control::add_transitions() {
-    state_machine.add_transition(State::CONNECTING, State::OPERATIONAL, []() {
-        return Comms::control_station->is_connected();
-    });
-    state_machine.add_transition(State::OPERATIONAL, State::FAULT, []() {
-        return !Comms::control_station->is_connected();
-    });
+    operational_state_machine.add_state(OperationalSMState::HV_OPEN);
+    operational_state_machine.add_state(OperationalSMState::PRECHARGE);
+    operational_state_machine.add_state(OperationalSMState::HV_CLOSED);
+    operational_state_machine.add_state(OperationalSMState::CHARGING);
+
+    state_machine.add_transition(
+        GeneralSMState::CONNECTING, GeneralSMState::OPERATIONAL,
+        []() { return Comms::control_station->is_connected(); });
+    state_machine.add_transition(
+        GeneralSMState::OPERATIONAL, GeneralSMState::FAULT,
+        []() { return !Comms::control_station->is_connected(); });
+
+    operational_state_machine.add_transition(
+        OperationalSMState::HV_OPEN, OperationalSMState::PRECHARGE,
+        []() { return Actuators::is_precharging(); });
+    operational_state_machine.add_transition(
+        OperationalSMState::HV_CLOSED, OperationalSMState::HV_OPEN,
+        []() { return Actuators::is_HV_open(); });
+    operational_state_machine.add_transition(
+        OperationalSMState::PRECHARGE, OperationalSMState::HV_OPEN,
+        []() { return Actuators::is_HV_open(); });
+    operational_state_machine.add_transition(
+        OperationalSMState::PRECHARGE, OperationalSMState::HV_CLOSED,
+        []() { return Actuators::is_HV_closed(); });
+
+    state_machine.add_low_precision_cyclic_action(
+        [this]() { Actuators::led_operational->toggle(); },
+        std::chrono::duration<int64_t, std::milli>(500),
+        GeneralSMState::CONNECTING);
+
+    state_machine.add_enter_action(
+        [this]() { Actuators::led_operational->turn_on(); },
+        GeneralSMState::OPERATIONAL);
 
     state_machine.add_enter_action(
         [this]() {
             Actuators::open_HV();
             Actuators::led_fault->turn_on();
         },
-        State::FAULT);
+        GeneralSMState::FAULT);
 
-    state_machine.add_low_precision_cyclic_action(
-        [this]() { Actuators::led_operational->toggle(); },
-        std::chrono::duration<int64_t, std::milli>(500), State::CONNECTING);
-
-    state_machine.add_enter_action(
-        [this]() { Actuators::led_operational->turn_on(); },
-        State::OPERATIONAL);
-
-#ifdef NUCLEO
-    state_machine.add_low_precision_cyclic_action(
-        [this]() { Actuators::led_nucleo->toggle(); },
-        std::chrono::duration<int64_t, std::milli>(500), State::CONNECTING);
-    state_machine.add_enter_action(
-        [this]() { Actuators::led_nucleo->turn_on(); }, State::OPERATIONAL);
-    state_machine.add_enter_action(
-        [this]() { Actuators::led_nucleo->turn_off(); }, State::FAULT);
-#endif
+    state_machine.add_state_machine(operational_state_machine,
+                                    GeneralSMState::OPERATIONAL);
 }
 
 void Control::add_protections() {
@@ -92,7 +105,7 @@ void Control::add_orders() {
             precharge_timeout_id = Time::set_timeout(4000, [this]() {
                 Time::unregister_mid_precision_alarm(precharge_timer_id);
                 Actuators::open_HV();
-                ProtectionManager::fault_and_propagate();
+                ErrorHandler("PRECHARGE FAILED");
             });
             precharge_timer_id =
                 Time::register_mid_precision_alarm(100, [this]() {
@@ -120,11 +133,16 @@ void Control::add_orders() {
 }
 
 void Control::add_packets() {
-    auto state_machine_packet =
-        new HeapPacket(static_cast<uint16_t>(Comms::IDPacket::STATE_MACHINE),
-                       &state_machine.current_state);
+    auto general_state_machine_packet = new HeapPacket(
+        static_cast<uint16_t>(Comms::IDPacket::GENERAL_STATE_MACHINE_STATUS),
+        &general_state_machine.current_state);
+    Comms::add_packet(general_state_machine_packet);
 
-    Comms::add_packet(state_machine_packet);
+    auto operational_state_machine_packet =
+        new HeapPacket(static_cast<uint16_t>(
+                           Comms::IDPacket::OPERATIONAL_STATE_MACHINE_STATUS),
+                       &operational_state_machine.current_state);
+    Comms::add_packet(operational_state_machine_packet);
 }
 
 void Control::update() {

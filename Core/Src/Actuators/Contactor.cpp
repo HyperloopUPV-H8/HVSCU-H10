@@ -1,7 +1,9 @@
 #include "Actuators/Contactor.hpp"
 
 Contactor::Contactor(DigitalOutput output, bool normally_opened)
-    : output(output), normally_opened(normally_opened) {}
+    : output(output),
+      normally_opened(normally_opened),
+      state(normally_opened ? State::OPEN : State::CLOSED) {}
 
 void Contactor::open() {
     if (normally_opened)
@@ -9,7 +11,10 @@ void Contactor::open() {
     else {
         output.turn_on();
     }
+    state = State::OPEN;
 }
+
+bool Contactor::is_open() { return state == State::OPEN; }
 
 void Contactor::close() {
     if (normally_opened)
@@ -17,4 +22,7 @@ void Contactor::close() {
     else {
         output.turn_off();
     }
+    state = State::CLOSED;
 }
+
+bool Contactor::is_closed() { return state == State::CLOSED; }

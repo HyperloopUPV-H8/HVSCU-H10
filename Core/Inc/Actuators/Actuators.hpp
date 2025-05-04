@@ -2,6 +2,7 @@
 
 #include "Actuators/Contactor.hpp"
 
+namespace HVSCU {
 class Actuators {
    private:
     static Contactor* contactor_low;
@@ -21,6 +22,12 @@ class Actuators {
     static void start();
 
     static void open_HV();
+    static bool is_HV_open();
+
     static void close_HV();
+    static bool is_HV_closed();
+
     static void start_precharge();
+    static bool is_precharging();
 };
+}  // namespace HVSCU

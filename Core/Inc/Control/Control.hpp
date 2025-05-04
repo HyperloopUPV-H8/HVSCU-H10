@@ -11,9 +11,20 @@ namespace HVSCU {
 
 class Control {
    private:
-    enum State : uint8_t { CONNECTING = 0, OPERATIONAL = 1, FAULT = 2 };
+    enum GeneralSMState : uint8_t {
+        CONNECTING = 0,
+        OPERATIONAL = 1,
+        FAULT = 2
+    };
+    enum OperationalSMState : uint8_t {
+        HV_OPEN = 0,
+        PRECHARGE = 1,
+        HV_CLOSED = 2,
+        CHARGING = 3
+    };
 
-    StateMachine state_machine;
+    StateMachine general_state_machine;
+    StateMachine operational_state_machine;
     std::unordered_map<State, std::vector<OrderBase*>> orders;
     bool send_packets_flag;
 
@@ -32,8 +43,7 @@ class Control {
 #endif
     }
 
-    void add_states();
-    void add_transitions();
+    void set_state_machines();
     void add_orders();
     void add_packets();
     void add_protections();
