@@ -35,6 +35,7 @@ class Control {
     void add_states();
     void add_transitions();
     void add_orders();
+    void add_packets();
     void add_protections();
 
    public:

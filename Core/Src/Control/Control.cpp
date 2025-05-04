@@ -18,6 +18,7 @@ Control::Control() : state_machine(), orders(), send_packets_flag(false) {
 
     Comms::start();
     add_orders();
+    add_packets();
     // Sensors::bmsh->initialize();
 
     Time::register_low_precision_alarm(17, [&]() { send_packets_flag = true; });
@@ -116,6 +117,14 @@ void Control::add_orders() {
     auto imd_bypass_order = new Order<Comms::IDOrder::IMD_BYPASS_ID>(
         []() { Actuators::imd_bypass->toggle(); });
     orders[State::OPERATIONAL].push_back(imd_bypass_order);
+}
+
+void Control::add_packets() {
+    auto state_machine_packet =
+        new HeapPacket(static_cast<uint16_t>(Comms::IDPacket::STATE_MACHINE),
+                       &state_machine.current_state);
+
+    Comms::add_packet(state_machine_packet);
 }
 
 void Control::update() {
