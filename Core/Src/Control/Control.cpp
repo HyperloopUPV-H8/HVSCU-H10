@@ -69,6 +69,7 @@ void Control::set_state_machines() {
     general_state_machine.add_enter_action(
         [this]() {
             Actuators::open_HV();
+            Actuators::led_operational->turn_off();
             Actuators::led_fault->turn_on();
         },
         GeneralSMState::FAULT);
