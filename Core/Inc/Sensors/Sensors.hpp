@@ -11,8 +11,8 @@ class Sensors {
 
     // Current sensor
     static constexpr Pin &CURRENT_PIN{PA0};
-    static constexpr float CURRENT_SLOPE{1.0};
-    static constexpr float CURRENT_OFFSET{};
+    static constexpr float CURRENT_SLOPE{92.27959442138672};
+    static constexpr float CURRENT_OFFSET{-152.49656677246094};
 
     static bool reading_sensors_flag;
 

@@ -12,9 +12,9 @@ Control::Control() : state_machine(), orders(), send_packets_flag(false) {
     add_states();
     add_transitions();
 
-    STLIB::start(Comms::HVSCU_IP);
-
     add_protections();
+
+    STLIB::start(Comms::HVSCU_IP);
 
     Comms::start();
     add_orders();
@@ -67,8 +67,12 @@ void Control::add_transitions() {
 void Control::add_protections() {
     ProtectionManager::link_state_machine(state_machine, State::FAULT);
 
-    add_protection(&Sensors::voltage_sensor->reading, Boundary<float, ABOVE>{320});
-    add_protection(&Sensors::current_sensor->reading, Boundary<float, OUT_OF_RANGE>{-15, 70});
+    add_protection(&Sensors::voltage_sensor->reading,
+                   Boundary<float, ABOVE>{320});
+    add_protection(&Sensors::current_sensor->reading,
+                   Boundary<float, OUT_OF_RANGE>{-15, 70});
+
+    ProtectionManager::initialize();
 }
 
 void Control::add_orders() {
