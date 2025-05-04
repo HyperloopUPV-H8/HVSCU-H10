@@ -37,10 +37,10 @@ void Control::set_state_machines() {
     operational_state_machine.add_state(OperationalSMState::HV_CLOSED);
     operational_state_machine.add_state(OperationalSMState::CHARGING);
 
-    state_machine.add_transition(
+    general_state_machine.add_transition(
         GeneralSMState::CONNECTING, GeneralSMState::OPERATIONAL,
         []() { return Comms::control_station->is_connected(); });
-    state_machine.add_transition(
+    general_state_machine.add_transition(
         GeneralSMState::OPERATIONAL, GeneralSMState::FAULT,
         []() { return !Comms::control_station->is_connected(); });
 
@@ -57,28 +57,29 @@ void Control::set_state_machines() {
         OperationalSMState::PRECHARGE, OperationalSMState::HV_CLOSED,
         []() { return Actuators::is_HV_closed(); });
 
-    state_machine.add_low_precision_cyclic_action(
+    general_state_machine.add_low_precision_cyclic_action(
         [this]() { Actuators::led_operational->toggle(); },
         std::chrono::duration<int64_t, std::milli>(500),
         GeneralSMState::CONNECTING);
 
-    state_machine.add_enter_action(
+    general_state_machine.add_enter_action(
         [this]() { Actuators::led_operational->turn_on(); },
         GeneralSMState::OPERATIONAL);
 
-    state_machine.add_enter_action(
+    general_state_machine.add_enter_action(
         [this]() {
             Actuators::open_HV();
             Actuators::led_fault->turn_on();
         },
         GeneralSMState::FAULT);
 
-    state_machine.add_state_machine(operational_state_machine,
-                                    GeneralSMState::OPERATIONAL);
+    general_state_machine.add_state_machine(operational_state_machine,
+                                            GeneralSMState::OPERATIONAL);
 }
 
 void Control::add_protections() {
-    ProtectionManager::link_state_machine(state_machine, State::FAULT);
+    ProtectionManager::link_state_machine(general_state_machine,
+                                          GeneralSMState::FAULT);
 
     add_protection(&Sensors::voltage_sensor->reading,
                    Boundary<float, ABOVE>{320});
@@ -94,8 +95,8 @@ void Control::add_orders() {
             cancel_timeouts();
             Actuators::open_HV();
         });
-    orders[State::OPERATIONAL].push_back(open_contactor_order);
-    orders[State::FAULT].push_back(open_contactor_order);
+    orders[GeneralSMState::OPERATIONAL].push_back(open_contactor_order);
+    orders[GeneralSMState::FAULT].push_back(open_contactor_order);
 
     auto close_contactor_order =
         new Order<Comms::IDOrder::CLOSE_CONTACTORS_ID>([this]() {
@@ -121,15 +122,15 @@ void Control::add_orders() {
                 Time::set_timeout(3000, []() { Actuators::close_HV(); });
 #endif
         });
-    orders[State::OPERATIONAL].push_back(close_contactor_order);
+    orders[GeneralSMState::OPERATIONAL].push_back(close_contactor_order);
 
     auto sdc_obccu_order = new Order<Comms::IDOrder::SDC_OBCCU_ID>(
         []() { Actuators::sdc_obccu->toggle(); });
-    orders[State::OPERATIONAL].push_back(sdc_obccu_order);
+    orders[GeneralSMState::OPERATIONAL].push_back(sdc_obccu_order);
 
     auto imd_bypass_order = new Order<Comms::IDOrder::IMD_BYPASS_ID>(
         []() { Actuators::imd_bypass->toggle(); });
-    orders[State::OPERATIONAL].push_back(imd_bypass_order);
+    orders[GeneralSMState::OPERATIONAL].push_back(imd_bypass_order);
 }
 
 void Control::add_packets() {
@@ -148,11 +149,12 @@ void Control::add_packets() {
 void Control::update() {
     STLIB::update();
     Sensors::update();
-    state_machine.check_transitions();
+    general_state_machine.check_transitions();
+    operational_state_machine.check_transitions();
     ProtectionManager::check_protections();
 
-    for (auto &order :
-         orders[static_cast<State>(state_machine.current_state)]) {
+    for (auto &order : orders[static_cast<GeneralSMState>(
+             general_state_machine.current_state)]) {
         order->check_order();
     }
 

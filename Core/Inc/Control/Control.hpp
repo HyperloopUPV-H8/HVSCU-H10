@@ -25,7 +25,7 @@ class Control {
 
     StateMachine general_state_machine;
     StateMachine operational_state_machine;
-    std::unordered_map<State, std::vector<OrderBase*>> orders;
+    std::unordered_map<GeneralSMState, std::vector<OrderBase*>> orders;
     bool send_packets_flag;
 
 #if SMART_PRECHARGE

@@ -40,7 +40,7 @@ void Actuators::open_HV() {
 
 bool Actuators::is_HV_open() {
     return contactor_discharge->is_closed() && contactor_low->is_open() &&
-           clontactor_high->is_open() && contactor_precharge->is_open();
+           contactor_high->is_open() && contactor_precharge->is_open();
 }
 
 void Actuators::close_HV() {
@@ -52,7 +52,7 @@ void Actuators::close_HV() {
 
 bool Actuators::is_HV_closed() {
     return contactor_discharge->is_open() && contactor_low->is_closed() &&
-           clontactor_high->is_closed() && contactor_precharge->is_open();
+           contactor_high->is_closed() && contactor_precharge->is_open();
 }
 
 void Actuators::start_precharge() {
@@ -64,6 +64,6 @@ void Actuators::start_precharge() {
 
 bool Actuators::is_precharging() {
     return contactor_discharge->is_open() && contactor_low->is_closed() &&
-           clontactor_high->is_open() && contactor_precharge->is_closed();
+           contactor_high->is_open() && contactor_precharge->is_closed();
 }
 }  // namespace HVSCU
