@@ -13,10 +13,6 @@ class HVSCU:
         OPERATIONAL = 1
         FAULT = 2
 
-    class Operational_SM(IntEnum):
-        IDLE = 0
-        PWM = 1
-
     class Contactors(IntEnum):
         HIGH = 0,
         PRECHARGE = 1,
@@ -26,7 +22,7 @@ class HVSCU:
 
     def __init__(self):
         self._shm = SharedMemory("shm_gpio_HVSCU", "shm_sm_HVSCU")
-        self._client = Socket("localhost", 50400, "localhost", 50500)
+        self._client = Socket("192.168.0.9", 50400, "192.168.1.7", 50500)
         packet_definitions = {
             900: [],  # Close contactors
             901: [],  # Open Contactors
@@ -34,10 +30,10 @@ class HVSCU:
         self.packets = Packets(packet_definitions)
         self._enable = DigitalOutService(self._shm, Pinout.PF4)
         self._contactors = {
-            HVSCU.Contactors.HIGH : DigitalOutService(Pinout.PG12, self._shm),
-            HVSCU.Contactors.PRECHARGE : DigitalOutService(Pinout.PD4,  self._shm),
-            HVSCU.Contactors.LOW : DigitalOutService(Pinout.PG14, self._shm),
-            HVSCU.Contactors.DISCHARGE : DigitalOutService(Pinout.PF4, self._shm)
+            HVSCU.Contactors.HIGH : DigitalOutService(self._shm,Pinout.PG12),
+            HVSCU.Contactors.PRECHARGE : DigitalOutService(self._shm,Pinout.PD4),
+            HVSCU.Contactors.LOW : DigitalOutService(self._shm,Pinout.PG14),
+            HVSCU.Contactors.DISCHARGE : DigitalOutService(self._shm,Pinout.PF4)
         }
         print("HVSCU initialized succesfully")
 
@@ -50,7 +46,10 @@ class HVSCU:
     def is_state(self, state: int) -> bool:
         current_state = self._shm.get_state_machine_state(1)
         return current_state == state
-
+    
+    def is_state_operational(self)->bool:
+        return self._shm.get_state_machine_state(1) == HVSCU.General_SM.OPERATIONAL
+    
     def check_contactor(self, contactor: Contactors, state: DigitalOut.State) -> bool:
         selected_contactor = self._contactors[contactor]
         return selected_contactor.get_pin_state() == state
