@@ -19,7 +19,7 @@ class Actuators {
     static DigitalOutput* imd_bypass;
     static DigitalOutput* led_nucleo;
 
-    static void start();
+    static void init();
 
     static void open_HV();
     static bool is_HV_open();

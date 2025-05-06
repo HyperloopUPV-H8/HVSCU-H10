@@ -10,8 +10,8 @@ Control::Control()
       operational_state_machine{},
       orders{},
       send_packets_flag{false} {
-    Actuators::start();
-    Sensors::start();
+    Actuators::init();
+    Sensors::init();
 
     set_state_machines();
 
@@ -19,10 +19,10 @@ Control::Control()
 
     STLIB::start(Comms::HVSCU_IP);
 
+    Sensors::start();
     Comms::start();
     add_orders();
     add_packets();
-    // Sensors::bmsh->initialize();
 
     Time::register_low_precision_alarm(17, [&]() { send_packets_flag = true; });
 }

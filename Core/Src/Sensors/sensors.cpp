@@ -23,7 +23,7 @@ float Sensors::total_voltage{};
 float Sensors::total_voltage{FAKE_TOTAL_VOLTAGE};
 #endif
 
-void Sensors::start() {
+void Sensors::init() {
     voltage_sensor = new ADCLinearSensor(
         VOLTAGE_PIN, static_cast<uint16_t>(Comms::IDPacket::VOLTAGE),
         VOLTAGE_SLOPE, VOLTAGE_OFFSET);
@@ -33,9 +33,15 @@ void Sensors::start() {
 
 #if BATTERIES_CONNECTED
     bmsh = new BMSH(SPI::spi3);
+#endif
+}
+
+void Sensors::start() {
+#if BATTERIES_CONNECTED
+    Sensors::bmsh->initialize();
+
     Time::register_low_precision_alarm(11,
                                        [&]() { cell_conversion_flag = true; });
-
     for (int i = 0; i < 10; ++i) {
         auto battery_packet = new HeapPacket(
             static_cast<uint16_t>(Comms::IDPacket::BATTERY_1) + i,

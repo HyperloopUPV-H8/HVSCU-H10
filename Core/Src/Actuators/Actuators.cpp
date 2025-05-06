@@ -15,7 +15,7 @@ DigitalOutput* Actuators::sdc_obccu = nullptr;
 DigitalOutput* Actuators::imd_bypass = nullptr;
 DigitalOutput* Actuators::led_nucleo = nullptr;
 
-void Actuators::start() {
+void Actuators::init() {
     contactor_low = new Contactor(DigitalOutput(CONTACTOR_LOW), true);
     contactor_high = new Contactor(DigitalOutput(CONTACTOR_HIGH), true);
     contactor_precharge =

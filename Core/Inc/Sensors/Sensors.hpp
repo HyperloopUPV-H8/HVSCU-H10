@@ -1,9 +1,9 @@
 #include "ADCLinearSensor.hpp"
 #include "BMS-LIB.hpp"
 
-#define BATTERIES_CONNECTED 0
+#define BATTERIES_CONNECTED 1
 #define READING_BATTERIES_TEMPERATURE 0
-#define FAKE_TOTAL_VOLTAGE 50.0
+#define FAKE_TOTAL_VOLTAGE 250.0
 
 namespace HVSCU {
 class Sensors {
@@ -37,6 +37,7 @@ class Sensors {
 #endif
     static float total_voltage;
 
+    static void init();
     static void start();
     static void update();
 #if BATTERIES_CONNECTED
