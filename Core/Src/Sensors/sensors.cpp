@@ -4,8 +4,8 @@
 
 namespace HVSCU {
 
-ADCLinearSensor *Sensors::voltage_sensor{nullptr};
-ADCLinearSensor *Sensors::current_sensor{nullptr};
+ADCLinearSensor<10> *Sensors::voltage_sensor{nullptr};
+ADCLinearSensor<10> *Sensors::current_sensor{nullptr};
 bool Sensors::reading_sensors_flag{false};
 
 #if BATTERIES_CONNECTED
@@ -24,10 +24,10 @@ float Sensors::total_voltage{FAKE_TOTAL_VOLTAGE};
 #endif
 
 void Sensors::init() {
-    voltage_sensor = new ADCLinearSensor(
+    voltage_sensor = new ADCLinearSensor<10>(
         VOLTAGE_PIN, static_cast<uint16_t>(Comms::IDPacket::VOLTAGE),
         VOLTAGE_SLOPE, VOLTAGE_OFFSET);
-    current_sensor = new ADCLinearSensor(
+    current_sensor = new ADCLinearSensor<10>(
         CURRENT_PIN, static_cast<uint16_t>(Comms::IDPacket::CURRENT),
         CURRENT_SLOPE, CURRENT_OFFSET);
 

@@ -29,8 +29,8 @@ class Sensors {
 #endif
 
    public:
-    static ADCLinearSensor *voltage_sensor;
-    static ADCLinearSensor *current_sensor;
+    static ADCLinearSensor<10> *voltage_sensor;
+    static ADCLinearSensor<10> *current_sensor;
 #if BATTERIES_CONNECTED
     static BMSH *bmsh;
     static std::array<float, BMS::EXTERNAL_ADCS> converted_temps;
