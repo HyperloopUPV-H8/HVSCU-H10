@@ -104,9 +104,12 @@ void Sensors::cell_conversion() {
 #else
     }
 #endif
+    float voltage = 0.0;
     for (auto &adc : bmsh->external_adcs) {
         adc.battery.update_data();
+        voltage += adc.battery.total_voltage;
     }
+    total_voltage = voltage;
 }
 #endif
 }  // namespace HVSCU
