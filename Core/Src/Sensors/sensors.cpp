@@ -40,7 +40,7 @@ void Sensors::start() {
 #if BATTERIES_CONNECTED
     Sensors::bmsh->initialize();
 
-    Time::register_low_precision_alarm(11,
+    Time::register_low_precision_alarm(25,
                                        [&]() { cell_conversion_flag = true; });
     for (int i = 0; i < 10; ++i) {
         auto battery_packet = new HeapPacket(
@@ -61,6 +61,10 @@ void Sensors::start() {
 
         Comms::add_packet(battery_packet);
     }
+
+    auto total_voltage_packet = new HeapPacket(
+        static_cast<uint16_t>(Comms::IDPacket::TOTAL_VOLTAGE), &total_voltage);
+    Comms::add_packet(total_voltage_packet);
 #endif
     Time::register_low_precision_alarm(10,
                                        [&]() { reading_sensors_flag = true; });

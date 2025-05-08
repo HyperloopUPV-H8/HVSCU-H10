@@ -33,6 +33,7 @@ class Comms {
         BATTERY_16 = 925,
         BATTERY_17 = 926,
         BATTERY_18 = 927,
+        TOTAL_VOLTAGE = 928,
         VOLTAGE = 930,
         CURRENT = 931,
         GENERAL_STATE_MACHINE_STATUS = 940,

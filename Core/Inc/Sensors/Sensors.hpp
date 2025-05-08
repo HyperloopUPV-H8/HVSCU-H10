@@ -9,8 +9,8 @@ namespace HVSCU {
 class Sensors {
     // Voltage sensor
     static constexpr Pin &VOLTAGE_PIN{PF13};
-    static constexpr float VOLTAGE_SLOPE{294.6192626953125};
-    static constexpr float VOLTAGE_OFFSET{-15.624292373657227};
+    static constexpr float VOLTAGE_SLOPE{124.299234299011000};
+    static constexpr float VOLTAGE_OFFSET{-5.409069953014590};
 
     // Current sensor
     static constexpr Pin &CURRENT_PIN{PA0};
