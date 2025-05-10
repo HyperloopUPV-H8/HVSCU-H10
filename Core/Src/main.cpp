@@ -4,6 +4,7 @@
 #include "lwip.h"
 #endif
 
+#include "Control/Blocks/Zeroing.hpp"
 #include "ST-LIB.hpp"
 
 // LEDS
@@ -24,6 +25,11 @@
 
 #define HVSCU_IP "192.168.1.7"
 #define CONTROL_SATION_IP "192.168.0.9"
+
+DigitalOutput *led_fault;
+DigitalOutput *led_operational;
+DigitalOutput *buffer_en;
+DigitalOutput *obcpu_reset;
 
 struct PFM {
     enum class PFM_STATUS : uint8_t { STOPPED, STARTED };
@@ -89,8 +95,10 @@ struct PFM {
         if (buffer_status == BUFFER_STATUS::ENABLED && reset_status &&
             pfm_status == PFM_STATUS::STARTED) {
             switching_status = SWITCHING_STATUS::SWITCHING;
+            led_fault->turn_on();
         } else {
             switching_status = SWITCHING_STATUS::NOT_SWITCHING;
+            led_fault->turn_off();
         }
     }
 };
@@ -107,13 +115,16 @@ PFM::PFM_STATUS PFM::pfm_status = PFM::PFM_STATUS::STOPPED;
 PFM::SWITCHING_STATUS PFM::switching_status =
     PFM::SWITCHING_STATUS::NOT_SWITCHING;
 
+template <std::size_t FilterSize>
 struct OBCPUSensor {
     float reading;
     float raw;
     HeapPacket packet;
 
     OBCPUSensor(Pin pin, uint16_t id, float slope, float offset)
-        : packet(id, &raw, &reading), sensor(pin, slope, offset, &reading) {
+        : packet(id, &raw, &reading),
+          sensor(pin, slope, offset, &reading, filter),
+          z{sensor} {
         sensor_id = sensor.get_id();
     }
 
@@ -122,26 +133,25 @@ struct OBCPUSensor {
         sensor.read();
     }
 
+    void zeroing() { z.execute(); }
+
    private:
-    LinearSensor<float> sensor;
+    FilteredLinearSensor<float, FilterSize> sensor;
+    MovingAverage<FilterSize> filter{};
+    Zeroing<float, 100> z;
     uint8_t sensor_id;
 };
 
 uint dead_time = 300;  // In ns
 uint freq = 30000;     // In Hz
 
-DigitalOutput *led_fault;
-DigitalOutput *led_operational;
-DigitalOutput *buffer_en;
-DigitalOutput *obcpu_reset;
-
 ServerSocket *backend;
 DatagramSocket *packets_endpoint;
 
-OBCPUSensor *input_current_sensor;
-OBCPUSensor *output_current_sensor;
-OBCPUSensor *input_voltage_sensor;
-OBCPUSensor *output_voltage_sensor;
+OBCPUSensor<100> *input_current_sensor;
+OBCPUSensor<100> *output_current_sensor;
+OBCPUSensor<100> *input_voltage_sensor;
+OBCPUSensor<100> *output_voltage_sensor;
 
 int main(void) {
 #ifdef SIM_ON
@@ -155,14 +165,16 @@ int main(void) {
 
     PFM::init(PIN_PWM_P, PIN_PWM_N, PIN_PWM_BUFFER_EN, PIN_OBCPU_RESET);
 
-    input_current_sensor = new OBCPUSensor(PIN_INPUT_CURRENT_OBCPU, 601, 1, 0);
-    output_current_sensor = new OBCPUSensor(
-        PIN_OUTPUT_CURRENT_OBCPU, 602, 2.030029306735260, -1.449986892377240);
-    input_voltage_sensor = new OBCPUSensor(PIN_INPUT_VOLTAGE_OBCPU, 603, 1, 0);
-    output_voltage_sensor = new OBCPUSensor(
+    input_current_sensor =
+        new OBCPUSensor<100>(PIN_INPUT_CURRENT_OBCPU, 601, 1, 0);
+    output_current_sensor = new OBCPUSensor<100>(
+        PIN_OUTPUT_CURRENT_OBCPU, 602, -2.030029306735260, -1.449986892377240);
+    input_voltage_sensor =
+        new OBCPUSensor<100>(PIN_INPUT_VOLTAGE_OBCPU, 603, 1, 0);
+    output_voltage_sensor = new OBCPUSensor<100>(
         PIN_OUTPUT_VOLTAGE_OBCPU, 604, 163.498533508976, -12.0197125310396);
 
-    Time::register_low_precision_alarm(17, [&]() {
+    Time::register_low_precision_alarm(1, [&]() {
         input_current_sensor->read();
         input_voltage_sensor->read();
         output_current_sensor->read();
@@ -192,10 +204,23 @@ int main(void) {
     });
 
     PFM::update_data();
-    PFM::toggle_buffer(); // Disable buffer (is low_active)
+    PFM::toggle_buffer();  // Disable buffer (is low_active)
+
+    Time::set_timeout(
+        1000, +[]() {
+            input_current_sensor->zeroing();
+            output_current_sensor->zeroing();
+            input_voltage_sensor->zeroing();
+            output_voltage_sensor->zeroing();
+        });
 
     while (1) {
         STLIB::update();
+        // if (backend->is_connected()) {
+        //     led_operational->turn_on();
+        // } else {
+        //     led_operational->turn_off();
+        // }
     }
 }
 
