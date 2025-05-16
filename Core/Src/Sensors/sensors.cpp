@@ -4,21 +4,34 @@
 
 namespace HVSCU {
 
+uint8_t spi_id;
+
+void SPI_transmit(const span<uint8_t> data) {
+    SPI::Instance *spi = SPI::registered_spi[spi_id];
+    HAL_SPI_Transmit(spi->hspi, data.data(), data.size(), 10);
+}
+void SPI_receive(span<uint8_t> buffer) {
+    SPI::Instance *spi = SPI::registered_spi[spi_id];
+    HAL_SPI_Receive(spi->hspi, buffer.data(), buffer.size(), 10);
+}
+void SPI_CS_turn_on() {
+    SPI::Instance *spi = SPI::registered_spi[spi_id];
+    SPI::turn_on_chip_select(spi);
+}
+void SPI_CS_turn_off() {
+    SPI::Instance *spi = SPI::registered_spi[spi_id];
+    SPI::turn_off_chip_select(spi);
+}
+uint32_t get_tick() { return HAL_GetTick(); }
+
 ADCLinearSensor<10> *Sensors::voltage_sensor{nullptr};
 ADCLinearSensor<10> *Sensors::current_sensor{nullptr};
 bool Sensors::reading_sensors_flag{false};
 
 #if BATTERIES_CONNECTED
-// Old BMS-LIB stuff
-BMSH *Sensors::bmsh;
-std::array<float, BMS::EXTERNAL_ADCS> Sensors::converted_temps;
-std::array<float, BMS::EXTERNAL_ADCS> Sensors::offset_batteries_temps = {
-    1273.9, 1273.9, 1273.9, 1273.9, 1273.9,
-    1273.9, 1273.9, 1273.9, 1273.9, 1273.9,
-};
-bool Sensors::cell_conversion_flag{false};
-Sensors::TURNO Sensors::turno = CELLS;
-float Sensors::total_voltage{};
+bool Sensors::read_total_voltage_flag{false};
+float Sensors::total_voltage{0.0};
+
 #else
 float Sensors::total_voltage{FAKE_TOTAL_VOLTAGE};
 #endif
@@ -31,33 +44,21 @@ void Sensors::init() {
         CURRENT_PIN, static_cast<uint16_t>(Comms::IDPacket::CURRENT),
         CURRENT_SLOPE, CURRENT_OFFSET);
 
-#if BATTERIES_CONNECTED
-    bmsh = new BMSH(SPI::spi3);
-#endif
+    spi_id = SPI::inscribe(SPI::spi3);
 }
 
 void Sensors::start() {
 #if BATTERIES_CONNECTED
-    Sensors::bmsh->initialize();
-
-    Time::register_low_precision_alarm(25,
-                                       [&]() { cell_conversion_flag = true; });
+    Time::register_low_precision_alarm(
+        10, [&]() { read_total_voltage_flag = true; });
     for (int i = 0; i < 10; ++i) {
         auto battery_packet = new HeapPacket(
-            static_cast<uint16_t>(Comms::IDPacket::BATTERY_1) + i,
-            &Sensors::bmsh->external_adcs[i].battery.SOC,
-            Sensors::bmsh->external_adcs[i].battery.cells[0],
-            Sensors::bmsh->external_adcs[i].battery.cells[1],
-            Sensors::bmsh->external_adcs[i].battery.cells[2],
-            Sensors::bmsh->external_adcs[i].battery.cells[3],
-            Sensors::bmsh->external_adcs[i].battery.cells[4],
-            Sensors::bmsh->external_adcs[i].battery.cells[5],
-            &Sensors::bmsh->external_adcs[i].battery.minimum_cell,
-            &Sensors::bmsh->external_adcs[i].battery.maximum_cell,
-            &Sensors::converted_temps[i],
-            Sensors::bmsh->external_adcs[i].battery.temperature2,
-            &Sensors::bmsh->external_adcs[i].battery.is_balancing,
-            &Sensors::bmsh->external_adcs[i].battery.total_voltage);
+            static_cast<uint16_t>(Comms::IDPacket::BATTERY_1) + i, &dummy,
+            &batteries[i].cells[0], &batteries[i].cells[1],
+            &batteries[i].cells[2], &batteries[i].cells[3],
+            &batteries[i].cells[4], &batteries[i].cells[5], &dummy, &dummy,
+            &batteries[i].GPIOs[0], &batteries[i].GPIOs[1], &dummy_bool,
+            &dummy);
 
         Comms::add_packet(battery_packet);
     }
@@ -72,10 +73,11 @@ void Sensors::start() {
 
 void Sensors::update() {
 #if BATTERIES_CONNECTED
-    if (cell_conversion_flag) {
-        cell_conversion();
-        cell_conversion_flag = false;
+    if (read_total_voltage_flag) {
+        read_total_voltage();
+        read_total_voltage_flag = false;
     }
+    bms.update();
 #endif
     if (reading_sensors_flag) {
         voltage_sensor->read();
@@ -85,33 +87,10 @@ void Sensors::update() {
 }
 
 #if BATTERIES_CONNECTED
-void Sensors::cell_conversion() {
-    bmsh->wake_up();
-    if (turno == CELLS) {
-        bmsh->update_cell_voltages();
-#if READING_BATTERY_TEMPERATURES
-        turno = TEMPS;
-    } else {
-        bmsh->measure_internal_device_parameters();
-        bmsh->start_adc_conversion_gpio();
-        bmsh->update_temperatures();
-        bmsh->read_internal_temperature();
-        turno = CELLS;
-    }
-
-    for (int i = 0; i < BMS::EXTERNAL_ADCS; i++) {
-        auto val = bmsh->external_adcs[i].battery.filtered_temp *
-                       gain_batteries_temperatures +
-                   offset_batteries_temps[i];
-        converted_temps[i] = val;
-    }
-#else
-    }
-#endif
+void Sensors::read_total_voltage() {
     float voltage = 0.0;
-    for (auto &adc : bmsh->external_adcs) {
-        adc.battery.update_data();
-        voltage += adc.battery.total_voltage;
+    for (auto &battery : batteries) {
+        voltage += battery.total_voltage;
     }
     total_voltage = voltage;
 }

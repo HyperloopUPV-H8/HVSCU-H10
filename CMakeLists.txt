@@ -3,7 +3,7 @@ cmake_minimum_required (VERSION 3.14)
 project (HVSCU ASM C CXX)
 set(EXECUTABLE ${PROJECT_NAME}.elf)
 set(STLIB_DIR ${CMAKE_CURRENT_LIST_DIR}/deps/ST-LIB)
-set(BMSLIB_DIR ${CMAKE_CURRENT_LIST_DIR}/deps/BMS-LIB)
+set(LTC6810Driver_DIR ${CMAKE_CURRENT_LIST_DIR}/deps/LTC6810-Driver)
 
 option(USE_ETHERNET "Enable ethernet peripheral" OFF)
 option(TARGET_NUCLEO "Targets the STM32H723 Nucleo development board" OFF)
@@ -22,13 +22,8 @@ if (PROJECT_IS_TOP_LEVEL AND (NOT CMAKE_CROSSCOMPILING))
   target_link_libraries(GTest::GTest INTERFACE gtest_main)
 endif()
 
-message("About to configure ST-LIB for HVSCU")
 add_subdirectory(${STLIB_DIR})
-message("ST-LIB configured for HVSCU")
-
-message("About to configure BMS-LIB for HVSCU")
-add_subdirectory(${BMSLIB_DIR})
-message("BMS-LIB configured for HVSCU")
+add_subdirectory(${LTC6810Driver_DIR})
 
 set(HAL_HEADER 
   ${CMAKE_SOURCE_DIR}/Core/Inc/main.h
@@ -73,7 +68,6 @@ ${SOURCE_CPP}
 
 target_link_libraries(${EXECUTABLE} PRIVATE 
   st-lib
-  bms-lib
   $<$<NOT:$<BOOL:${CMAKE_CROSSCOMPILING}>>:GTest::gtest_main>
 )
 
@@ -115,8 +109,6 @@ target_compile_options(${EXECUTABLE} PRIVATE
 # REMEMBER TO CHANGE `.vscode/C_cpp_properties.json` TO MATCH THIS LIST
 target_include_directories(${EXECUTABLE} PRIVATE
   ${CMAKE_CURRENT_SOURCE_DIR}/Core/Inc
-
-  # ST-LIB
   $<$<BOOL:${CMAKE_CROSSCOMPILING}>:${STLIB_DIR}/Drivers/CMSIS/Device/ST/STM32H7xx/Include>
   $<$<BOOL:${CMAKE_CROSSCOMPILING}>:${STLIB_DIR}/Drivers/CMSIS/Include>
   $<$<BOOL:${CMAKE_CROSSCOMPILING}>:${STLIB_DIR}/Drivers/STM32H7xx_HAL_Driver/Inc>
@@ -144,10 +136,7 @@ target_include_directories(${EXECUTABLE} PRIVATE
   ${STLIB_DIR}/Inc/ST-LIB_LOW
   ${STLIB_DIR}/Inc/ST-LIB_HIGH
 
-  #BMS-LIB
-  ${BMSLIB_DIR}
-  ${BMSLIB_DIR}/Inc
-  ${BMSLIB_DIR}/Inc/Models
+  ${LTC6810Driver_DIR}/Inc
 )
 
 target_link_options(${EXECUTABLE} PRIVATE 
@@ -163,7 +152,6 @@ target_link_options(${EXECUTABLE} PRIVATE
   $<$<BOOL:${CMAKE_CROSSCOMPILING}>:-Wl,-Map=${PROJECT_NAME}.map,--cref>
   $<$<BOOL:${CMAKE_CROSSCOMPILING}>:-Wl,--gc-sections>
 )
-
 if (PROJECT_IS_TOP_LEVEL)
     # Create symlink to compile_commands.json for IDE to pick it up
     execute_process(

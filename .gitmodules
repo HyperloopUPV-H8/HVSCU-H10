@@ -10,3 +10,9 @@
 [submodule "deps/BMS-LIB"]
 	path = deps/BMS-LIB
 	url = https://github.com/HyperloopUPV-H8/BMS-LIB.git
+[submodule "deps/deps/LTC6810-Driver"]
+	path = deps/deps/LTC6810-Driver
+	url = https://github.com/HyperloopUPV-H8/LTC6810-Driver.git
+[submodule "deps/LTC6810-Driver"]
+	path = deps/LTC6810-Driver
+	url = https://github.com/HyperloopUPV-H8/LTC6810-Driver.git
