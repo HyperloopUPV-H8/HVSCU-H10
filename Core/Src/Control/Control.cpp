@@ -17,7 +17,7 @@ Control::Control()
 
     add_protections();
 
-    STLIB::start(Comms::HVSCU_IP);
+    STLIB::start("00:80:e1:00:01:07", Comms::HVSCU_IP);
 
     Sensors::start();
     Comms::start();

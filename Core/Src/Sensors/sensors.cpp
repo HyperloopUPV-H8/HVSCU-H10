@@ -57,8 +57,7 @@ void Sensors::start() {
             &batteries[i].cells[0], &batteries[i].cells[1],
             &batteries[i].cells[2], &batteries[i].cells[3],
             &batteries[i].cells[4], &batteries[i].cells[5], &dummy, &dummy,
-            &batteries[i].GPIOs[0], &batteries[i].GPIOs[1], &dummy_bool,
-            &dummy);
+            &dummy, &dummy, &dummy_bool, &dummy);
 
         Comms::add_packet(battery_packet);
     }
