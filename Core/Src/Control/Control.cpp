@@ -10,8 +10,6 @@ Control::Control()
       operational_state_machine{},
       orders{},
       send_packets_flag{false} {
-    Actuators::init();
-    Sensors::init();
 
     set_state_machines();
 
@@ -58,19 +56,19 @@ void Control::set_state_machines() {
         []() { return Actuators::is_HV_closed(); });
 
     general_state_machine.add_low_precision_cyclic_action(
-        [this]() { Actuators::led_operational->toggle(); },
+        [this]() { Actuators::led_operational.toggle(); },
         std::chrono::duration<int64_t, std::milli>(500),
         GeneralSMState::CONNECTING);
 
     general_state_machine.add_enter_action(
-        [this]() { Actuators::led_operational->turn_on(); },
+        [this]() { Actuators::led_operational.turn_on(); },
         GeneralSMState::OPERATIONAL);
 
     general_state_machine.add_enter_action(
         [this]() {
             Actuators::open_HV();
-            Actuators::led_operational->turn_off();
-            Actuators::led_fault->turn_on();
+            Actuators::led_operational.turn_off();
+            Actuators::led_fault.turn_on();
         },
         GeneralSMState::FAULT);
 
@@ -82,9 +80,9 @@ void Control::add_protections() {
     ProtectionManager::link_state_machine(general_state_machine,
                                           GeneralSMState::FAULT);
 
-    add_protection(&Sensors::voltage_sensor->reading,
+    add_protection(&Sensors::voltage_sensor.reading,
                    Boundary<float, ABOVE>{320});
-    add_protection(&Sensors::current_sensor->reading,
+    add_protection(&Sensors::current_sensor.reading,
                    Boundary<float, OUT_OF_RANGE>{-15, 70});
 
     ProtectionManager::initialize();
@@ -111,7 +109,7 @@ void Control::add_orders() {
             });
             precharge_timer_id =
                 Time::register_mid_precision_alarm(100, [this]() {
-                    if (Sensors::voltage_sensor->reading /
+                    if (Sensors::voltage_sensor.reading /
                             Sensors::total_voltage >
                         PERCENTAGE_TO_FINISH_PRECHARGE) {
                         cancel_timeouts();
@@ -126,11 +124,11 @@ void Control::add_orders() {
     orders[GeneralSMState::OPERATIONAL].push_back(close_contactor_order);
 
     auto sdc_obccu_order = new Order<Comms::IDOrder::SDC_OBCCU_ID>(
-        []() { Actuators::sdc_obccu->toggle(); });
+        []() { Actuators::sdc_obccu.toggle(); });
     orders[GeneralSMState::OPERATIONAL].push_back(sdc_obccu_order);
 
     auto imd_bypass_order = new Order<Comms::IDOrder::IMD_BYPASS_ID>(
-        []() { Actuators::imd_bypass->toggle(); });
+        []() { Actuators::imd_bypass.toggle(); });
     orders[GeneralSMState::OPERATIONAL].push_back(imd_bypass_order);
 }
 

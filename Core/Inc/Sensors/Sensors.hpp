@@ -5,7 +5,6 @@
 #include "BMS.hpp"
 
 #define BATTERIES_CONNECTED 1
-#define READING_BATTERIES_TEMPERATURE 0
 #define FAKE_TOTAL_VOLTAGE 250.0
 
 namespace HVSCU {
@@ -27,27 +26,32 @@ class Sensors {
     static constexpr float CURRENT_SLOPE{92.27959442138672};
     static constexpr float CURRENT_OFFSET{-152.49656677246094};
 
-    static bool reading_sensors_flag;
+    static inline bool reading_sensors_flag{false};
 
 #if BATTERIES_CONNECTED
-    static bool read_total_voltage_flag;
+    static inline bool read_total_voltage_flag{false};
 #endif
 
    public:
-    static ADCLinearSensor<10> *voltage_sensor;
-    static ADCLinearSensor<10> *current_sensor;
+    static inline ADCLinearSensor<10> voltage_sensor{
+        VOLTAGE_PIN, static_cast<uint16_t>(Comms::IDPacket::VOLTAGE),
+        VOLTAGE_SLOPE, VOLTAGE_OFFSET};
+    static inline ADCLinearSensor<10> current_sensor{
+        CURRENT_PIN, static_cast<uint16_t>(Comms::IDPacket::CURRENT),
+        CURRENT_SLOPE, CURRENT_OFFSET};
 #if BATTERIES_CONNECTED
     static constexpr BMS<10, SPI_transmit, SPI_receive, SPI_CS_turn_on,
-                         SPI_CS_turn_off, get_tick, 1, 10>
+                         SPI_CS_turn_off, get_tick, 1, 20>
         bms{};
 
     static inline auto &batteries = bms.get_data();
     static inline float dummy{0.0};
     static inline bool dummy_bool{false};
+    static inline float total_voltage{};
+#else
+    static inline float total_voltage{FAKE_TOTAL_VOLTAGE};
 #endif
-    static float total_voltage;
 
-    static void init();
     static void start();
     static void update();
 #if BATTERIES_CONNECTED

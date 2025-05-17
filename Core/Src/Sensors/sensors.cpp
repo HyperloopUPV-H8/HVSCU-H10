@@ -4,7 +4,7 @@
 
 namespace HVSCU {
 
-uint8_t spi_id;
+uint8_t spi_id = SPI::inscribe(SPI::spi3);
 
 void SPI_transmit(const span<uint8_t> data) {
     SPI::Instance *spi = SPI::registered_spi[spi_id];
@@ -23,29 +23,6 @@ void SPI_CS_turn_off() {
     SPI::turn_off_chip_select(spi);
 }
 uint32_t get_tick() { return HAL_GetTick(); }
-
-ADCLinearSensor<10> *Sensors::voltage_sensor{nullptr};
-ADCLinearSensor<10> *Sensors::current_sensor{nullptr};
-bool Sensors::reading_sensors_flag{false};
-
-#if BATTERIES_CONNECTED
-bool Sensors::read_total_voltage_flag{false};
-float Sensors::total_voltage{0.0};
-
-#else
-float Sensors::total_voltage{FAKE_TOTAL_VOLTAGE};
-#endif
-
-void Sensors::init() {
-    voltage_sensor = new ADCLinearSensor<10>(
-        VOLTAGE_PIN, static_cast<uint16_t>(Comms::IDPacket::VOLTAGE),
-        VOLTAGE_SLOPE, VOLTAGE_OFFSET);
-    current_sensor = new ADCLinearSensor<10>(
-        CURRENT_PIN, static_cast<uint16_t>(Comms::IDPacket::CURRENT),
-        CURRENT_SLOPE, CURRENT_OFFSET);
-
-    spi_id = SPI::inscribe(SPI::spi3);
-}
 
 void Sensors::start() {
 #if BATTERIES_CONNECTED
@@ -79,8 +56,8 @@ void Sensors::update() {
     bms.update();
 #endif
     if (reading_sensors_flag) {
-        voltage_sensor->read();
-        current_sensor->read();
+        voltage_sensor.read();
+        current_sensor.read();
         reading_sensors_flag = false;
     }
 }

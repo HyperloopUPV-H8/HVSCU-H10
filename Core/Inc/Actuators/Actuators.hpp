@@ -2,24 +2,32 @@
 
 #include "Actuators/Contactor.hpp"
 
+#define CONTACTOR_LOW PG14
+#define CONTACTOR_HIGH PG12
+#define CONTACTOR_PRECHARGE PD4
+#define CONTACTOR_DISCHARGE PF4
+#define LED_OPERATIONAL PG8
+#define LED_FAULT PG7
+#define IMD_BYPASS PF5
+#define SDC_OBCCU PA11
+
 namespace HVSCU {
 class Actuators {
    private:
-    static Contactor* contactor_low;
-    static Contactor* contactor_high;
-    static Contactor* contactor_precharge;
-    static Contactor* contactor_discharge;
+    static inline Contactor contactor_low{DigitalOutput(CONTACTOR_LOW), true};
+    static inline Contactor contactor_high{DigitalOutput(CONTACTOR_HIGH), true};
+    static inline Contactor contactor_precharge{
+        DigitalOutput(CONTACTOR_PRECHARGE), true};
+    static inline Contactor contactor_discharge{
+        DigitalOutput(CONTACTOR_DISCHARGE), true};
 
     static uint8_t contactors_timeout_id;
 
    public:
-    static DigitalOutput* led_operational;
-    static DigitalOutput* led_fault;
-    static DigitalOutput* sdc_obccu;
-    static DigitalOutput* imd_bypass;
-    static DigitalOutput* led_nucleo;
-
-    static void init();
+    static inline DigitalOutput led_operational{LED_OPERATIONAL};
+    static inline DigitalOutput led_fault{LED_FAULT};
+    static inline DigitalOutput sdc_obccu{SDC_OBCCU};
+    static inline DigitalOutput imd_bypass{IMD_BYPASS};
 
     static void open_HV();
     static bool is_HV_open();
