@@ -14,12 +14,10 @@
 namespace HVSCU {
 class Actuators {
    private:
-    static inline Contactor contactor_low{DigitalOutput(CONTACTOR_LOW), true};
-    static inline Contactor contactor_high{DigitalOutput(CONTACTOR_HIGH), true};
-    static inline Contactor contactor_precharge{
-        DigitalOutput(CONTACTOR_PRECHARGE), true};
-    static inline Contactor contactor_discharge{
-        DigitalOutput(CONTACTOR_DISCHARGE), true};
+    static inline Contactor contactor_low{CONTACTOR_LOW, true};
+    static inline Contactor contactor_high{CONTACTOR_HIGH, true};
+    static inline Contactor contactor_precharge{CONTACTOR_PRECHARGE, true};
+    static inline Contactor contactor_discharge{CONTACTOR_DISCHARGE, true};
 
     static uint8_t contactors_timeout_id;
 

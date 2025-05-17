@@ -1,7 +1,7 @@
 #include "Actuators/Contactor.hpp"
 
-Contactor::Contactor(DigitalOutput output, bool normally_opened)
-    : output(output),
+Contactor::Contactor(Pin pin, bool normally_opened)
+    : output{pin},
       normally_opened(normally_opened),
       state(normally_opened ? State::OPEN : State::CLOSED) {}
 
