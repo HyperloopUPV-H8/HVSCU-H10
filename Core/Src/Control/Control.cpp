@@ -10,6 +10,9 @@ Control::Control()
       operational_state_machine{},
       orders{},
       send_packets_flag{false} {
+    Sensors::init();
+    Actuators::init();
+
     set_state_machines();
 
     add_protections();
@@ -55,19 +58,19 @@ void Control::set_state_machines() {
         []() { return Actuators::is_HV_closed(); });
 
     general_state_machine.add_low_precision_cyclic_action(
-        [this]() { Actuators::led_operational.toggle(); },
+        [this]() { Actuators::led_operational().toggle(); },
         std::chrono::duration<int64_t, std::milli>(500),
         GeneralSMState::CONNECTING);
 
     general_state_machine.add_enter_action(
-        [this]() { Actuators::led_operational.turn_on(); },
+        [this]() { Actuators::led_operational().turn_on(); },
         GeneralSMState::OPERATIONAL);
 
     general_state_machine.add_enter_action(
         [this]() {
             Actuators::open_HV();
-            Actuators::led_operational.turn_off();
-            Actuators::led_fault.turn_on();
+            Actuators::led_operational().turn_off();
+            Actuators::led_fault().turn_on();
         },
         GeneralSMState::FAULT);
 
@@ -123,11 +126,11 @@ void Control::add_orders() {
     orders[GeneralSMState::OPERATIONAL].push_back(close_contactor_order);
 
     auto sdc_obccu_order = new Order<Comms::IDOrder::SDC_OBCCU_ID>(
-        []() { Actuators::sdc_obccu.toggle(); });
+        []() { Actuators::sdc_obccu().toggle(); });
     orders[GeneralSMState::OPERATIONAL].push_back(sdc_obccu_order);
 
     auto imd_bypass_order = new Order<Comms::IDOrder::IMD_BYPASS_ID>(
-        []() { Actuators::imd_bypass.toggle(); });
+        []() { Actuators::imd_bypass().toggle(); });
     orders[GeneralSMState::OPERATIONAL].push_back(imd_bypass_order);
 }
 

@@ -48,7 +48,7 @@ class Sensors {
     }
 #if BATTERIES_CONNECTED
     static constexpr BMS<10, SPI_transmit, SPI_receive, SPI_CS_turn_on,
-                         SPI_CS_turn_off, get_tick, 1, 20>
+                         SPI_CS_turn_off, get_tick, 1, 500>
         bms{};
 
     static inline auto &batteries = bms.get_data();
@@ -59,6 +59,7 @@ class Sensors {
     static inline float total_voltage{FAKE_TOTAL_VOLTAGE};
 #endif
 
+    static void init();
     static void start();
     static void update();
 #if BATTERIES_CONNECTED

@@ -14,18 +14,44 @@
 namespace HVSCU {
 class Actuators {
    private:
-    static inline Contactor contactor_low{CONTACTOR_LOW, true};
-    static inline Contactor contactor_high{CONTACTOR_HIGH, true};
-    static inline Contactor contactor_precharge{CONTACTOR_PRECHARGE, true};
-    static inline Contactor contactor_discharge{CONTACTOR_DISCHARGE, true};
+    static Contactor& contactor_low() {
+        static Contactor contactor_low{CONTACTOR_LOW, true};
+        return contactor_low;
+    }
+    static Contactor& contactor_high() {
+        static Contactor contactor_high{CONTACTOR_HIGH, true};
+        return contactor_high;
+    }
+    static Contactor& contactor_precharge() {
+        static Contactor contactor_precharge{CONTACTOR_PRECHARGE, true};
+        return contactor_precharge;
+    }
+    static Contactor& contactor_discharge() {
+        static Contactor contactor_discharge{CONTACTOR_DISCHARGE, true};
+        return contactor_discharge;
+    }
 
     static uint8_t contactors_timeout_id;
 
    public:
-    static inline DigitalOutput led_operational{LED_OPERATIONAL};
-    static inline DigitalOutput led_fault{LED_FAULT};
-    static inline DigitalOutput sdc_obccu{SDC_OBCCU};
-    static inline DigitalOutput imd_bypass{IMD_BYPASS};
+    static DigitalOutput& led_operational() {
+        static DigitalOutput led_operational{LED_OPERATIONAL};
+        return led_operational;
+    }
+    static DigitalOutput& led_fault() {
+        static DigitalOutput led_fault{LED_FAULT};
+        return led_fault;
+    }
+    static DigitalOutput& sdc_obccu() {
+        static DigitalOutput sdc_obccu{SDC_OBCCU};
+        return sdc_obccu;
+    }
+    static DigitalOutput& imd_bypass() {
+        static DigitalOutput imd_bypass{IMD_BYPASS};
+        return imd_bypass;
+    }
+
+    static void init();
 
     static void open_HV();
     static bool is_HV_open();

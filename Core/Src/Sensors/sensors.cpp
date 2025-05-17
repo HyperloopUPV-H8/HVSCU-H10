@@ -3,27 +3,31 @@
 #include "Comms/Comms.hpp"
 
 namespace HVSCU {
-uint8_t get_SPI_id() {
-    static uint8_t id{SPI::inscribe(SPI::spi3)};
-    return id;
-}
+uint8_t spi_id;
+
 void SPI_transmit(const span<uint8_t> data) {
-    SPI::Instance *spi = SPI::registered_spi[get_SPI_id()];
+    SPI::Instance *spi = SPI::registered_spi[spi_id];
     HAL_SPI_Transmit(spi->hspi, data.data(), data.size(), 10);
 }
 void SPI_receive(span<uint8_t> buffer) {
-    SPI::Instance *spi = SPI::registered_spi[get_SPI_id()];
+    SPI::Instance *spi = SPI::registered_spi[spi_id];
     HAL_SPI_Receive(spi->hspi, buffer.data(), buffer.size(), 10);
 }
 void SPI_CS_turn_on() {
-    SPI::Instance *spi = SPI::registered_spi[get_SPI_id()];
+    SPI::Instance *spi = SPI::registered_spi[spi_id];
     SPI::turn_on_chip_select(spi);
 }
 void SPI_CS_turn_off() {
-    SPI::Instance *spi = SPI::registered_spi[get_SPI_id()];
+    SPI::Instance *spi = SPI::registered_spi[spi_id];
     SPI::turn_off_chip_select(spi);
 }
 uint32_t get_tick() { return HAL_GetTick(); }
+
+void Sensors::init() {
+    voltage_sensor();
+    current_sensor();
+    spi_id = SPI::inscribe(SPI::spi3);
+}
 
 void Sensors::start() {
 #if BATTERIES_CONNECTED
