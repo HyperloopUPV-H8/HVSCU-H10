@@ -10,7 +10,6 @@ Control::Control()
       operational_state_machine{},
       orders{},
       send_packets_flag{false} {
-
     set_state_machines();
 
     add_protections();
@@ -80,9 +79,9 @@ void Control::add_protections() {
     ProtectionManager::link_state_machine(general_state_machine,
                                           GeneralSMState::FAULT);
 
-    add_protection(&Sensors::voltage_sensor.reading,
+    add_protection(&Sensors::voltage_sensor().reading,
                    Boundary<float, ABOVE>{320});
-    add_protection(&Sensors::current_sensor.reading,
+    add_protection(&Sensors::current_sensor().reading,
                    Boundary<float, OUT_OF_RANGE>{-15, 70});
 
     ProtectionManager::initialize();
@@ -109,7 +108,7 @@ void Control::add_orders() {
             });
             precharge_timer_id =
                 Time::register_mid_precision_alarm(100, [this]() {
-                    if (Sensors::voltage_sensor.reading /
+                    if (Sensors::voltage_sensor().reading /
                             Sensors::total_voltage >
                         PERCENTAGE_TO_FINISH_PRECHARGE) {
                         cancel_timeouts();

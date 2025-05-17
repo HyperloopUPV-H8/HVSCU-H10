@@ -6,12 +6,12 @@
 
 #include "Control/Control.hpp"
 
-HVSCU::Control control;
-
 int main(void) {
 #ifdef SIM_ON
     SharedMemory::start("shm_gpio_HVSCU", "shm_sm_HVSCU");
 #endif
+    HVSCU::Control control;
+
     while (1) {
         control.update();
     }

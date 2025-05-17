@@ -33,12 +33,19 @@ class Sensors {
 #endif
 
    public:
-    static inline ADCLinearSensor<10> voltage_sensor{
-        VOLTAGE_PIN, static_cast<uint16_t>(Comms::IDPacket::VOLTAGE),
-        VOLTAGE_SLOPE, VOLTAGE_OFFSET};
-    static inline ADCLinearSensor<10> current_sensor{
-        CURRENT_PIN, static_cast<uint16_t>(Comms::IDPacket::CURRENT),
-        CURRENT_SLOPE, CURRENT_OFFSET};
+    static ADCLinearSensor<10> &voltage_sensor() {
+        static ADCLinearSensor<10> voltage_sensor{
+            VOLTAGE_PIN, static_cast<uint16_t>(Comms::IDPacket::VOLTAGE),
+            VOLTAGE_SLOPE, VOLTAGE_OFFSET};
+        return voltage_sensor;
+    }
+
+    static ADCLinearSensor<10> &current_sensor() {
+        static ADCLinearSensor<10> current_sensor{
+            CURRENT_PIN, static_cast<uint16_t>(Comms::IDPacket::CURRENT),
+            CURRENT_SLOPE, CURRENT_OFFSET};
+        return current_sensor;
+    }
 #if BATTERIES_CONNECTED
     static constexpr BMS<10, SPI_transmit, SPI_receive, SPI_CS_turn_on,
                          SPI_CS_turn_off, get_tick, 1, 20>
