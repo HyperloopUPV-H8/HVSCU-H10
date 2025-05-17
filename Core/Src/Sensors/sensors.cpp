@@ -39,7 +39,7 @@ void Sensors::start() {
             &batteries[i].cells[0], &batteries[i].cells[1],
             &batteries[i].cells[2], &batteries[i].cells[3],
             &batteries[i].cells[4], &batteries[i].cells[5], &dummy, &dummy,
-            &dummy, &dummy, &dummy_bool, &dummy);
+            &dummy, &dummy, &dummy_bool, &batteries[i].total_voltage);
 
         Comms::add_packet(battery_packet);
     }
