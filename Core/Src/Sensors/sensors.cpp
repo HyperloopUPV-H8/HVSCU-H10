@@ -3,37 +3,37 @@
 #include "Comms/Comms.hpp"
 
 namespace HVSCU {
-uint8_t spi_id;
-
-void SPI_transmit(const span<uint8_t> data) {
+void BMSConfig::SPI_transmit(const span<uint8_t> data) {
     SPI::Instance *spi = SPI::registered_spi[spi_id];
     HAL_SPI_Transmit(spi->hspi, data.data(), data.size(), 10);
 }
-void SPI_receive(span<uint8_t> buffer) {
+void BMSConfig::SPI_receive(span<uint8_t> buffer) {
     SPI::Instance *spi = SPI::registered_spi[spi_id];
     HAL_SPI_Receive(spi->hspi, buffer.data(), buffer.size(), 10);
 }
-void SPI_CS_turn_on() {
-    SPI::Instance *spi = SPI::registered_spi[spi_id];
-    SPI::turn_on_chip_select(spi);
-}
-void SPI_CS_turn_off() {
+void BMSConfig::SPI_CS_turn_off() {
     SPI::Instance *spi = SPI::registered_spi[spi_id];
     SPI::turn_off_chip_select(spi);
 }
-uint32_t get_tick() { return HAL_GetTick(); }
+void BMSConfig::SPI_CS_turn_on() {
+    SPI::Instance *spi = SPI::registered_spi[spi_id];
+    SPI::turn_on_chip_select(spi);
+}
+
+int32_t BMSConfig::get_tick() { return Sensors::us_counter; }
 
 void Sensors::init() {
     voltage_sensor();
     current_sensor();
-    spi_id = SPI::inscribe(SPI::spi3);
+    BMSConfig::spi_id = SPI::inscribe(SPI::spi3);
 }
 
 void Sensors::start() {
 #if BATTERIES_CONNECTED
     Time::register_low_precision_alarm(
         10, [&]() { read_total_voltage_flag = true; });
-    for (int i = 0; i < 10; ++i) {
+    Time::register_high_precision_alarm(500, +[]() { ++Sensors::us_counter; });
+    for (int i{0}; i < N_BATTERIES; ++i) {
         auto battery_packet = new HeapPacket(
             static_cast<uint16_t>(Comms::IDPacket::BATTERY_1) + i, &dummy,
             &batteries[i].cells[0], &batteries[i].cells[1],
@@ -47,6 +47,11 @@ void Sensors::start() {
     auto total_voltage_packet = new HeapPacket(
         static_cast<uint16_t>(Comms::IDPacket::TOTAL_VOLTAGE), &total_voltage);
     Comms::add_packet(total_voltage_packet);
+
+    auto driver_diag_packet = new HeapPacket(
+        static_cast<uint16_t>(Comms::IDPacket::DRIVER_DIAG),
+        &driver_diag.reading_period, &driver_diag.success_conv_rate);
+    Comms::add_packet(driver_diag_packet);
 #endif
     Time::register_low_precision_alarm(10,
                                        [&]() { reading_sensors_flag = true; });

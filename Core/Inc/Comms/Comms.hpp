@@ -37,7 +37,8 @@ class Comms {
         VOLTAGE = 930,
         CURRENT = 931,
         GENERAL_STATE_MACHINE_STATUS = 940,
-        OPERATIONAL_STATE_MACHINE_STATUS = 941
+        OPERATIONAL_STATE_MACHINE_STATUS = 941,
+        DRIVER_DIAG = 942
     };
 
     static const uint16_t CONTROL_STATION_PORT = 50500;
