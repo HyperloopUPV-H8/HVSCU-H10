@@ -27,7 +27,7 @@ class Actuators {
         return contactor_precharge;
     }
     static Contactor& contactor_discharge() {
-        static Contactor contactor_discharge{CONTACTOR_DISCHARGE, true};
+        static Contactor contactor_discharge{CONTACTOR_DISCHARGE, false};
         return contactor_discharge;
     }
 

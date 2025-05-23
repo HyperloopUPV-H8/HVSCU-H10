@@ -10,7 +10,7 @@ class Contactor {
     State state;
 
    public:
-    Contactor(Pin pin, bool normally_opened);
+    Contactor(Pin& pin, bool normally_opened);
     void open();
     bool is_open();
 

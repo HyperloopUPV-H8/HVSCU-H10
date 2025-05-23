@@ -1,6 +1,6 @@
 #include "Actuators/Contactor.hpp"
 
-Contactor::Contactor(Pin pin, bool normally_opened)
+Contactor::Contactor(Pin& pin, bool normally_opened)
     : output{pin},
       normally_opened(normally_opened),
       state(normally_opened ? State::OPEN : State::CLOSED) {}
