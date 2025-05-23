@@ -20,12 +20,16 @@ void BMSConfig::SPI_CS_turn_on() {
     SPI::turn_on_chip_select(spi);
 }
 
+#if BATTERIES_CONNECTED
 int32_t BMSConfig::get_tick() { return Sensors::us_counter; }
+#endif
 
 void Sensors::init() {
     voltage_sensor();
     current_sensor();
-    BMSConfig::spi_id = SPI::inscribe(SPI::spi3);
+    if constexpr (BATTERIES_CONNECTED) {
+        BMSConfig::spi_id = SPI::inscribe(SPI::spi3);
+    }
 }
 
 void Sensors::start() {

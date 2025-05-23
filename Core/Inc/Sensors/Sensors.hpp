@@ -4,7 +4,7 @@
 #include "ADCLinearSensor.hpp"
 #include "BMS.hpp"
 
-#define BATTERIES_CONNECTED 1
+#define BATTERIES_CONNECTED 0
 #define N_BATTERIES 3
 #define READING_PERIOD_US 10000
 #define FAKE_TOTAL_VOLTAGE 250.0
