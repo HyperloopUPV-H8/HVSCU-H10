@@ -35,7 +35,7 @@ void Sensors::init() {
 void Sensors::start() {
 #if BATTERIES_CONNECTED
     Time::register_low_precision_alarm(
-        10, [&]() { read_total_voltage_flag = true; });
+        READING_PERIOD_US / 1000, [&]() { read_total_voltage_flag = true; });
     Time::register_high_precision_alarm(500, +[]() { ++Sensors::us_counter; });
     for (int i{0}; i < N_BATTERIES; ++i) {
         auto battery_packet = new HeapPacket(
