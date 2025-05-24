@@ -13,7 +13,7 @@ namespace HVSCU {
 struct BMSConfig {
     static inline uint8_t spi_id{};
 
-    static constexpr size_t n_LTC6810{3};
+    static constexpr size_t n_LTC6810{10};
     static void SPI_transmit(const std::span<uint8_t> data);
     static void SPI_receive(std::span<uint8_t> buffer);
     static void SPI_CS_turn_on(void);
