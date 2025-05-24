@@ -7,7 +7,12 @@
 #include "IMD.hpp"
 
 #define BATTERIES_CONNECTED 1
-#define N_BATTERIES 12
+#define N_BATTERIES 10
+#define READING_PERIOD_US 10000
+#define FAKE_TOTAL_VOLTAGE 250.0
+
+#define MAGIC_NUMBER 7.5
+
 namespace HVSCU {
 class Sensors {
     // Voltage sensor for HVSCU with ID 1
@@ -26,6 +31,9 @@ class Sensors {
 
     static inline bool reading_sensors_flag{false};
     static inline bool reading_batteries_flag{false};
+#if BATTERIES_CONNECTED
+    static inline bool process_batteries_data_flag{false};
+#endif
 
    public:
     static ADCLinearSensor<10> &voltage_sensor() {
@@ -55,10 +63,14 @@ class Sensors {
             static_cast<uint16_t>(Comms::IDPacket::BATTERY_1)};
         return batteries;
     }
+    static inline array<array<float, 2>, N_BATTERIES> batteries_temp{};
 
     static void init();
     static void start();
     static void update();
+#if BATTERIES_CONNECTED
+    static void process_batteries_data();
+#endif
 };
 }  // namespace HVSCU
 
