@@ -9,6 +9,8 @@
 #define READING_PERIOD_US 10000
 #define FAKE_TOTAL_VOLTAGE 250.0
 
+#define MAGIC_NUMBER 7.5
+
 namespace HVSCU {
 struct BMSConfig {
     static inline uint8_t spi_id{};
@@ -37,7 +39,7 @@ class Sensors {
     static inline bool reading_sensors_flag{false};
 
 #if BATTERIES_CONNECTED
-    static inline bool read_total_voltage_flag{false};
+    static inline bool process_batteries_data_flag{false};
 #endif
 
    public:
@@ -59,6 +61,7 @@ class Sensors {
 
     static inline auto &batteries = bms.get_data();
     static inline auto &driver_diag = bms.get_diag();
+    static inline array<array<float, 2>, N_BATTERIES> batteries_temp{};
     static inline float dummy{0.0};
     static inline bool dummy_bool{false};
     static inline float total_voltage{};
@@ -71,7 +74,7 @@ class Sensors {
     static void start();
     static void update();
 #if BATTERIES_CONNECTED
-    static void read_total_voltage();
+    static void process_batteries_data();
 #endif
 };
 }  // namespace HVSCU

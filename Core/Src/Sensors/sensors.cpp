@@ -34,8 +34,9 @@ void Sensors::init() {
 
 void Sensors::start() {
 #if BATTERIES_CONNECTED
-    Time::register_low_precision_alarm(
-        READING_PERIOD_US / 1000, [&]() { read_total_voltage_flag = true; });
+    Time::register_low_precision_alarm(READING_PERIOD_US / 1000, [&]() {
+        process_batteries_data_flag = true;
+    });
     Time::register_high_precision_alarm(500, +[]() { ++Sensors::us_counter; });
     for (int i{0}; i < N_BATTERIES; ++i) {
         auto battery_packet = new HeapPacket(
@@ -43,7 +44,8 @@ void Sensors::start() {
             &batteries[i].cells[0], &batteries[i].cells[1],
             &batteries[i].cells[2], &batteries[i].cells[3],
             &batteries[i].cells[4], &batteries[i].cells[5], &dummy, &dummy,
-            &dummy, &dummy, &dummy_bool, &batteries[i].total_voltage);
+            &batteries_temp[i][0], &batteries_temp[i][1], &dummy_bool,
+            &batteries[i].total_voltage);
 
         Comms::add_packet(battery_packet);
     }
@@ -63,9 +65,9 @@ void Sensors::start() {
 
 void Sensors::update() {
 #if BATTERIES_CONNECTED
-    if (read_total_voltage_flag) {
-        read_total_voltage();
-        read_total_voltage_flag = false;
+    if (process_batteries_data_flag) {
+        process_batteries_data();
+        process_batteries_data_flag = false;
     }
     bms.update();
 #endif
@@ -77,12 +79,19 @@ void Sensors::update() {
 }
 
 #if BATTERIES_CONNECTED
-void Sensors::read_total_voltage() {
+void Sensors::process_batteries_data() {
+    // Total batteries voltage
     float voltage = 0.0;
     for (auto &battery : batteries) {
         voltage += battery.total_voltage;
     }
     total_voltage = voltage;
+
+    // Batteries temperatures
+    for (auto i{0}; i < N_BATTERIES; ++i) {
+        batteries_temp[i][0] = batteries[i].GPIOs[0] * MAGIC_NUMBER;
+        batteries_temp[i][1] = batteries[i].GPIOs[1] * MAGIC_NUMBER;
+    }
 }
 #endif
 }  // namespace HVSCU
