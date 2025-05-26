@@ -20,6 +20,10 @@ class Sensors {
     static constexpr float CURRENT_SLOPE{92.27959442138672};
     static constexpr float CURRENT_OFFSET{-152.49656677246094};
 
+    // IMD
+    // static constexpr Pin &OK_PIN{??};
+    static constexpr Pin &M_LS_PIN{PF7};
+
     static inline bool reading_sensors_flag{false};
 
 #if BATTERIES_CONNECTED
@@ -40,6 +44,15 @@ class Sensors {
             CURRENT_SLOPE, CURRENT_OFFSET};
         return current_sensor;
     }
+
+    static IMD &imd() {
+        static IMD imd{
+            OK_PIN,
+            M_LS_PIN,
+        };
+        return imd;
+    }
+
 #if BATTERIES_CONNECTED
     static BatteryPack<N_BATTERIES> &batteries() {
         static BatteryPack<N_BATTERIES> batteries{
