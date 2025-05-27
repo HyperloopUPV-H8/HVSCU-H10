@@ -112,7 +112,7 @@ void Control::add_orders() {
             precharge_timer_id =
                 Time::register_mid_precision_alarm(100, [this]() {
                     if (Sensors::voltage_sensor().reading /
-                            Sensors::total_voltage >
+                            Sensors::batteries().total_voltage >
                         PERCENTAGE_TO_FINISH_PRECHARGE) {
                         cancel_timeouts();
                         Actuators::close_HV();

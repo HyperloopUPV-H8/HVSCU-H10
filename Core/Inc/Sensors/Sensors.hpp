@@ -3,26 +3,12 @@
 
 #include "ADCLinearSensor.hpp"
 #include "BMS.hpp"
+#include "BatteryPack.hpp"
 
 #define BATTERIES_CONNECTED 1
 #define N_BATTERIES 10
-#define READING_PERIOD_US 10000
-#define FAKE_TOTAL_VOLTAGE 250.0
 
 namespace HVSCU {
-struct BMSConfig {
-    static inline uint8_t spi_id{};
-
-    static constexpr size_t n_LTC6810{N_BATTERIES};
-    static void SPI_transmit(const std::span<uint8_t> data);
-    static void SPI_receive(std::span<uint8_t> buffer);
-    static void SPI_CS_turn_on(void);
-    static void SPI_CS_turn_off(void);
-    static int32_t get_tick(void);
-    static constexpr int32_t tick_resolution_us{500};
-    static constexpr int32_t period_us{READING_PERIOD_US};
-};
-
 class Sensors {
     // Voltage sensor
     static constexpr Pin &VOLTAGE_PIN{PF13};
@@ -37,7 +23,7 @@ class Sensors {
     static inline bool reading_sensors_flag{false};
 
 #if BATTERIES_CONNECTED
-    static inline bool read_total_voltage_flag{false};
+    static inline bool reading_batteries_flag{false};
 #endif
 
    public:
@@ -55,24 +41,18 @@ class Sensors {
         return current_sensor;
     }
 #if BATTERIES_CONNECTED
-    static constexpr BMS<BMSConfig> bms{};
-
-    static inline auto &batteries = bms.get_data();
-    static inline auto &driver_diag = bms.get_diag();
-    static inline float dummy{0.0};
-    static inline bool dummy_bool{false};
-    static inline float total_voltage{};
-    static inline int32_t us_counter{};
-#else
-    static inline float total_voltage{FAKE_TOTAL_VOLTAGE};
+    static BatteryPack<10> &batteries() {
+        static BatteryPack<10> batteries{
+            static_cast<uint16_t>(Comms::IDPacket::BATTERY_1),
+            static_cast<uint16_t>(Comms::IDPacket::TOTAL_VOLTAGE),
+            static_cast<uint16_t>(Comms::IDPacket::DRIVER_DIAG)};
+        return batteries;
+    }
 #endif
 
     static void init();
     static void start();
     static void update();
-#if BATTERIES_CONNECTED
-    static void read_total_voltage();
-#endif
 };
 }  // namespace HVSCU
 
