@@ -11,7 +11,10 @@
 #define READING_PERIOD_US 10000
 #define FAKE_TOTAL_VOLTAGE 250.0
 
-#define MAGIC_NUMBER 7.5
+#define RESISTANCE_REFERENCE 10000  // Ohmios
+#define VOLTAGE_REFERENCE 3.0       // V
+#define R0 100                      // Ohmios
+#define TCR 0.00385
 
 namespace HVSCU {
 class Sensors {

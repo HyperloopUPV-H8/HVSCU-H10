@@ -57,8 +57,12 @@ void Sensors::process_batteries_data() {
 
     // Batteries temperatures
     for (auto i{0}; i < N_BATTERIES; ++i) {
-        batteries_temp[i][0] = batteries[i].GPIOs[0] * MAGIC_NUMBER;
-        batteries_temp[i][1] = batteries[i].GPIOs[1] * MAGIC_NUMBER;
+        for (auto j{0}; j < 2; ++j) {
+            auto voltage = batteries[i].GPIOs[j];
+            auto resistance = (-VOLTAGE_REFERENCE * RESISTANCE_REFERENCE) /
+                              (voltage - VOLTAGE_REFERENCE);
+            batteries_temp[i][j] = (resistance - R0) / (TCR * R0);
+        }
     }
 }
 #endif
