@@ -7,13 +7,13 @@
 #include "IMD.hpp"
 
 #define BATTERIES_CONNECTED 1
-#define N_BATTERIES 10
-#define READING_PERIOD_US 10000
+#define N_BATTERIES 9
+#define READING_PERIOD_US 20000
 #define FAKE_TOTAL_VOLTAGE 250.0
 
-#define RESISTANCE_REFERENCE 10000  // Ohmios
-#define VOLTAGE_REFERENCE 3.0       // V
-#define R0 100                      // Ohmios
+#define RESISTANCE_REFERENCE 10000.0  // Ohmios
+#define VOLTAGE_REFERENCE 3.0         // V
+#define R0 100.0                      // Ohmios
 #define TCR 0.00385
 
 namespace HVSCU {
@@ -66,7 +66,7 @@ class Sensors {
             static_cast<uint16_t>(Comms::IDPacket::BATTERY_1)};
         return batteries;
     }
-    static inline array<array<float, 2>, N_BATTERIES> batteries_temp{};
+    static inline array<float, N_BATTERIES> batteries_temp{};
 
     static void init();
     static void start();
