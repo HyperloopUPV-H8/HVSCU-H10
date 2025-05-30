@@ -44,7 +44,7 @@ void Sensors::start() {
             &batteries[i].cells[0], &batteries[i].cells[1],
             &batteries[i].cells[2], &batteries[i].cells[3],
             &batteries[i].cells[4], &batteries[i].cells[5], &dummy, &dummy,
-            &batteries_temp[i][0], &batteries_temp[i][1], &dummy_bool,
+            &batteries_temp[i], &dummy, &dummy_bool,
             &batteries[i].total_voltage);
 
         Comms::add_packet(battery_packet);
@@ -80,22 +80,16 @@ void Sensors::update() {
 
 #if BATTERIES_CONNECTED
 void Sensors::process_batteries_data() {
-    // Total batteries voltage
-    float voltage = 0.0;
-    for (auto &battery : batteries) {
-        voltage += battery.total_voltage;
-    }
-    total_voltage = voltage;
-
-    // Batteries temperatures
+    float total_voltage_temp{0.0};
     for (auto i{0}; i < N_BATTERIES; ++i) {
-        for (auto j{0}; j < 2; ++j) {
-            auto voltage = batteries[i].GPIOs[j];
-            auto resistance = (-VOLTAGE_REFERENCE * RESISTANCE_REFERENCE) /
-                              (voltage - VOLTAGE_REFERENCE);
-            batteries_temp[i][j] = (resistance - R0) / (TCR * R0);
-        }
+        total_voltage_temp += batteries[i].total_voltage;
+
+        auto GPIO_voltage = batteries[i].GPIOs[0];
+        auto resistance = (GPIO_voltage * RESISTANCE_REFERENCE) /
+                          (VOLTAGE_REFERENCE - GPIO_voltage);
+        batteries_temp[i] = (resistance - R0) / (TCR * R0);
     }
+    total_voltage = total_voltage_temp;
 }
 #endif
 }  // namespace HVSCU
