@@ -41,11 +41,11 @@ class Sensors {
         return current_sensor;
     }
 #if BATTERIES_CONNECTED
-    static BatteryPack<10> &batteries() {
-        static BatteryPack<10> batteries{
-            static_cast<uint16_t>(Comms::IDPacket::BATTERY_1),
+    static BatteryPack<N_BATTERIES> &batteries() {
+        static BatteryPack<N_BATTERIES> batteries{
             static_cast<uint16_t>(Comms::IDPacket::TOTAL_VOLTAGE),
-            static_cast<uint16_t>(Comms::IDPacket::DRIVER_DIAG)};
+            static_cast<uint16_t>(Comms::IDPacket::DRIVER_DIAG),
+            static_cast<uint16_t>(Comms::IDPacket::BATTERY_1)};
         return batteries;
     }
 #endif

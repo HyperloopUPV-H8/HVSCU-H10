@@ -4,7 +4,7 @@
 #include "BMS.hpp"
 #include "Sensors/Sensors.hpp"
 
-#define READING_PERIOD_US 10000
+#define READING_PERIOD_US 17000
 #define FAKE_TOTAL_VOLTAGE 250.0  // V
 #define NOMINAL_CAPACITY 6        // Ah
 #define MIN_VOLTAGE 22.0          // V
@@ -50,7 +50,7 @@ class BatteryPack {
         auto delta = (MAX_VOLTAGE - MIN_VOLTAGE) / (points - 1);
         array<std::pair<float, float>, points> result;
         for (size_t i{0}; i < points; ++i) {
-            auto x = i * delta;
+            auto x = MIN_VOLTAGE + i * delta;
             auto soc = A * x * x * x + B * x * x + C * x + D;
             result[i] = std::make_pair(x, soc);
         }
@@ -107,6 +107,10 @@ class BatteryPack {
             Comms::add_packet(battery_packets[i].get());
         }
 
+        BMSConfig::spi_id = SPI::inscribe(SPI::spi3);
+    }
+
+    void start() {
         Time::register_high_precision_alarm(
             500, +[]() { ++BMSConfig::us_counter; });
     }
@@ -120,7 +124,7 @@ class BatteryPack {
         }
         total_voltage = voltage;
 
-        if (std::abs(current) < 0.01) {
+        if (std::abs(current) < 0.1) {
             // Coulomb counting
             for (auto &soc : SoCs) {
                 auto now = HAL_GetTick();
