@@ -19,6 +19,8 @@ Control::Control()
 
     STLIB::start("00:80:e1:00:01:07", Comms::HVSCU_IP);
 
+    Actuators::start();
+
     Sensors::start();
     Comms::start();
     add_orders();
@@ -86,6 +88,8 @@ void Control::add_protections() {
                    Boundary<float, ABOVE>{320});
     add_protection(&Sensors::current_sensor().reading,
                    Boundary<float, OUT_OF_RANGE>{-15, 70});
+    add_protection(&Sensors::sdc_good_value,
+                   Boundary<PinState, EQUALS>(PinState::OFF));
 
     ProtectionManager::initialize();
 }

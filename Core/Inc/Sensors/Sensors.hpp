@@ -34,6 +34,9 @@ class Sensors {
     static constexpr float CURRENT_SLOPE{92.27959442138672};
     static constexpr float CURRENT_OFFSET{-152.49656677246094};
 
+    // SDC_GOOD
+    static constexpr Pin &SDC_GOOD_PIN{PB12};
+
     static inline bool reading_sensors_flag{false};
 
 #if BATTERIES_CONNECTED
@@ -54,6 +57,13 @@ class Sensors {
             CURRENT_SLOPE, CURRENT_OFFSET};
         return current_sensor;
     }
+
+    static inline PinState sdc_good_value{OFF};
+    static SensorInterrupt &sdc_good() {
+        static SensorInterrupt sdc_good{SDC_GOOD_PIN, nullptr, sdc_good_value};
+        return sdc_good;
+    }
+
 #if BATTERIES_CONNECTED
     static constexpr BMS<BMSConfig> bms{};
 

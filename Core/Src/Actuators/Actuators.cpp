@@ -15,7 +15,10 @@ void Actuators::init() {
     imd_bypass();
 }
 
+void Actuators::start() { sdc_obccu().turn_on(); }
+
 void Actuators::open_HV() {
+    sdc_obccu().turn_off();
     contactor_discharge().close();
     contactor_low().open();
     contactor_high().open();

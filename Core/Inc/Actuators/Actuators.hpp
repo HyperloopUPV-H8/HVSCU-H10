@@ -52,6 +52,7 @@ class Actuators {
     }
 
     static void init();
+    static void start();
 
     static void open_HV();
     static bool is_HV_open();

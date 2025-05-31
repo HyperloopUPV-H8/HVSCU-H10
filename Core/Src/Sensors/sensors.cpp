@@ -27,6 +27,7 @@ int32_t BMSConfig::get_tick() { return Sensors::us_counter; }
 void Sensors::init() {
     voltage_sensor();
     current_sensor();
+    sdc_good();
     if constexpr (BATTERIES_CONNECTED) {
         BMSConfig::spi_id = SPI::inscribe(SPI::spi3);
     }
