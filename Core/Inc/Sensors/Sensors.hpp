@@ -4,6 +4,7 @@
 #include "ADCLinearSensor.hpp"
 #include "BMS.hpp"
 #include "BatteryPack.hpp"
+#include "IMD.hpp"
 
 #define BATTERIES_CONNECTED 1
 #define N_BATTERIES 15
@@ -23,6 +24,7 @@ class Sensors {
     // IMD
     // static constexpr Pin &OK_PIN{??};
     static constexpr Pin &M_LS_PIN{PF7};
+    static constexpr Pin &IMD_POW{PE2};
 
     static inline bool reading_sensors_flag{false};
 
@@ -46,10 +48,7 @@ class Sensors {
     }
 
     static IMD &imd() {
-        static IMD imd{
-            OK_PIN,
-            M_LS_PIN,
-        };
+        static IMD imd{M_LS_PIN, IMD_POW};
         return imd;
     }
 

@@ -20,6 +20,8 @@ void Sensors::start() {
     }
     Time::register_low_precision_alarm(17,
                                        [&]() { reading_sensors_flag = true; });
+
+    imd().power_on();
 }
 
 void Sensors::update() {
@@ -34,6 +36,7 @@ void Sensors::update() {
     if (reading_sensors_flag) {
         voltage_sensor().read();
         current_sensor().read();
+        imd().read();
         reading_sensors_flag = false;
     }
 }

@@ -210,7 +210,8 @@ DualPWMmap TimerPeripheral::available_dual_pwms = {
 #ifdef HAL_TIM_MODULE_ENABLED
 
 map<Pin, InputCapture::Instance> InputCapture::available_instances = {
-    {PF0, InputCapture::Instance(PF0, &timer23, TIM_CHANNEL_1, TIM_CHANNEL_2)}};
+    {PF0, InputCapture::Instance(PF0, &timer23, TIM_CHANNEL_1, TIM_CHANNEL_2)},
+    {PF7, InputCapture::Instance(PF7, &timer23, TIM_CHANNEL_1, TIM_CHANNEL_2)}};
 
 #endif
 
