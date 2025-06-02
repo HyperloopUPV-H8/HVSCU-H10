@@ -8,6 +8,7 @@ void Sensors::init() {
     current_sensor();
     imd();
     batteries();
+    sdc();
 }
 
 void Sensors::start() {

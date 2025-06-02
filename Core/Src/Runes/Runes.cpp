@@ -210,7 +210,8 @@ DualPWMmap TimerPeripheral::available_dual_pwms = {
 #ifdef HAL_TIM_MODULE_ENABLED
 
 map<Pin, InputCapture::Instance> InputCapture::available_instances = {
-    // {PF0, InputCapture::Instance(PF0, &timer23, TIM_CHANNEL_1, TIM_CHANNEL_2)},
+    // {PF0, InputCapture::Instance(PF0, &timer23, TIM_CHANNEL_1,
+    // TIM_CHANNEL_2)},
     {PF7, InputCapture::Instance(PF7, &timer23, TIM_CHANNEL_2, TIM_CHANNEL_1)}};
 
 #endif
@@ -279,7 +280,9 @@ uint32_t ADC::ranks[16] = {
 #ifdef HAL_EXTI_MODULE_ENABLED
 
 map<uint16_t, ExternalInterrupt::Instance> ExternalInterrupt::instances = {
-    {PE0.gpio_pin, Instance(EXTI0_IRQn)}, {PE1.gpio_pin, Instance(EXTI1_IRQn)}};
+    {PE0.gpio_pin, Instance(EXTI0_IRQn)},
+    {PE1.gpio_pin, Instance(EXTI1_IRQn)},
+    {PB12.gpio_pin, Instance(EXTI15_10_IRQn)}};
 
 #endif
 

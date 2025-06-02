@@ -5,6 +5,7 @@
 #include "BMS.hpp"
 #include "BatteryPack.hpp"
 #include "IMD.hpp"
+#include "SDC.hpp"
 
 #define BATTERIES_CONNECTED 1
 #define N_BATTERIES 2
@@ -47,7 +48,11 @@ class Sensors {
         static IMD imd{M_LS_PIN, IMD_POW,
                        static_cast<uint16_t>(Comms::IDPacket::IMD)};
         return imd;
-    }
+
+        static SDC &sdc() {
+            static SDC sdc{SDC_GOOD_PIN};
+            return sdc;
+        }
 
     static BatteryPack<N_BATTERIES> &batteries() {
         static BatteryPack<N_BATTERIES> batteries{
@@ -58,10 +63,10 @@ class Sensors {
     }
     
 
-    static void init();
-    static void start();
-    static void update();
-};
+        static void init();
+        static void start();
+        static void update();
+    };
 }  // namespace HVSCU
 
 #endif
