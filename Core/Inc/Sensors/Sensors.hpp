@@ -6,7 +6,7 @@
 #include "BatteryPack.hpp"
 
 #define BATTERIES_CONNECTED 1
-#define N_BATTERIES 10
+#define N_BATTERIES 15
 
 namespace HVSCU {
 class Sensors {
