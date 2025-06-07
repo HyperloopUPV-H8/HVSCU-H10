@@ -48,7 +48,8 @@ class Sensors {
     }
 
     static IMD &imd() {
-        static IMD imd{M_LS_PIN, IMD_POW};
+        static IMD imd{M_LS_PIN, IMD_POW,
+                       static_cast<uint16_t>(Comms::IDPacket::IMD)};
         return imd;
     }
 

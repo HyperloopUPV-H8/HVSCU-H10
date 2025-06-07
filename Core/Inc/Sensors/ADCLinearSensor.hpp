@@ -1,12 +1,11 @@
 #ifndef HVSCU_VOLTAGE_SENSOR_HPP
 #define HVSCU_VOLTAGE_SENSOR_HPP
 
+#include "Comms/Comms.hpp"
 #include "ST-LIB_LOW.hpp"
 
-#include "Comms/Comms.hpp"
-
 namespace HVSCU {
-template<std::size_t FilterSize>
+template <std::size_t FilterSize>
 class ADCLinearSensor {
     FilteredLinearSensor<float, FilterSize> sensor;
     HeapPacket packet;

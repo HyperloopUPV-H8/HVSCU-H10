@@ -1,6 +1,7 @@
 #ifndef IMD_HPP
 #define IMD_HPP
 
+#include "Comms/Comms.hpp"
 #include "ST-LIB_LOW.hpp"
 
 namespace HVSCU {
@@ -16,7 +17,7 @@ inline bool lessError(const A& a, const B& b, const E& error) {
     return std::abs(a - b) < error;
 }
 class IMD {
-    enum class Status {
+    enum class Status : uint8_t {
         SHORTCIRCUIT,
         NORMAL,
         UNDERVOLTAGE,
@@ -24,57 +25,57 @@ class IMD {
         GROUNDING_FAULT
     };
 
-    bool is_ok;
-
     PWMSensor<float> m_ls;
     float freq{};
     float duty{};
 
     DigitalOutput pow;
 
-    Status status;
+    uint8_t status;
+    float resistance{};
+
+    HeapPacket packet;
 
    public:
-    IMD(Pin& m_ls_pin, Pin& pow_pin)
-        : m_ls{m_ls_pin, freq, duty}, pow{pow_pin} {}
+    IMD(Pin& m_ls_pin, Pin& pow_pin, uint16_t id)
+        : m_ls{m_ls_pin, freq, duty},
+          pow{pow_pin},
+          packet{id, &status, &resistance} {
+        Comms::add_packet(&packet);
+    }
 
     void power_on() { pow.turn_on(); }
 
     void read() {
         m_ls.read();
         if (lessError(freq, 0, 0.1)) {
-            status = Status::SHORTCIRCUIT;
-            is_ok = false;
+            status = static_cast<uint8_t>(Status::SHORTCIRCUIT);
             return;
         }
         if (lessError(freq, 10, 0.1)) {
-            status = Status::NORMAL;
-            is_ok = false;
+            status = static_cast<uint8_t>(Status::NORMAL);
             return;
         }
         if (lessError(freq, 20, 0.1)) {
-            status = Status::UNDERVOLTAGE;
-            is_ok = false;
+            status = static_cast<uint8_t>(Status::UNDERVOLTAGE);
             return;
         }
         if (lessError(freq, 30, 0.1)) {
             if (duty < 20) {
-                status = Status::NORMAL;
-                is_ok = true;
+                status = static_cast<uint8_t>(Status::NORMAL);
             } else {
-                status = Status::SHORTCIRCUIT;
-                is_ok = false;
+                status = static_cast<uint8_t>(Status::SHORTCIRCUIT);
             }
+
+            resistance = ((90 * 1.2e6) / (duty - 5)) - 1.2e6;
             return;
         }
         if (lessError(freq, 40, 0.1)) {
-            status = Status::EQUIPMENT_FAULT;
-            is_ok = false;
+            status = static_cast<uint8_t>(Status::EQUIPMENT_FAULT);
             return;
         }
         if (lessError(freq, 50, 0.1)) {
-            status = Status::GROUNDING_FAULT;
-            is_ok = false;
+            status = static_cast<uint8_t>(Status::GROUNDING_FAULT);
             return;
         }
     }
