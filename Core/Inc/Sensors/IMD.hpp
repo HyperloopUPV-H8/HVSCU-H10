@@ -21,6 +21,7 @@ class IMD {
         SHORTCIRCUIT,
         NORMAL,
         UNDERVOLTAGE,
+        FAST_EVAL,
         EQUIPMENT_FAULT,
         GROUNDING_FAULT
     };
@@ -31,7 +32,8 @@ class IMD {
 
     DigitalOutput pow;
 
-    uint8_t status;
+    uint8_t status{static_cast<uint8_t>(Status::FAST_EVAL)};
+    bool is_ok{true};
     float resistance{};
 
     HeapPacket packet;
@@ -40,11 +42,20 @@ class IMD {
     IMD(Pin& m_ls_pin, Pin& pow_pin, uint16_t id)
         : m_ls{m_ls_pin, freq, duty},
           pow{pow_pin},
-          packet{id, &status, &resistance} {
+          packet{id, &status, &resistance, &is_ok} {
         Comms::add_packet(&packet);
     }
 
     void power_on() { pow.turn_on(); }
+
+    void check_ok() {
+        resistance = ((90 * 1.2e6) / (duty - 5)) - 1.2e6;
+        if (resistance < 100000) {
+            is_ok = false;
+        } else {
+            is_ok = true;
+        }
+    };
 
     void read() {
         m_ls.read();
@@ -54,20 +65,22 @@ class IMD {
         }
         if (lessError(freq, 10, 0.1)) {
             status = static_cast<uint8_t>(Status::NORMAL);
+            check_ok();
             return;
         }
         if (lessError(freq, 20, 0.1)) {
             status = static_cast<uint8_t>(Status::UNDERVOLTAGE);
+            check_ok();
             return;
         }
         if (lessError(freq, 30, 0.1)) {
+            status = static_cast<uint8_t>(Status::FAST_EVAL);
             if (duty < 20) {
-                status = static_cast<uint8_t>(Status::NORMAL);
+                is_ok = true;
             } else {
-                status = static_cast<uint8_t>(Status::SHORTCIRCUIT);
+                is_ok = false;
             }
 
-            resistance = ((90 * 1.2e6) / (duty - 5)) - 1.2e6;
             return;
         }
         if (lessError(freq, 40, 0.1)) {
