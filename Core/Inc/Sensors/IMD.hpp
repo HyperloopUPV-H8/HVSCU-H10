@@ -33,12 +33,13 @@ class IMD {
     DigitalOutput pow;
 
     uint8_t status{static_cast<uint8_t>(Status::FAST_EVAL)};
-    bool is_ok{true};
     float resistance{};
 
     HeapPacket packet;
 
    public:
+    bool is_ok{true};
+
     IMD(Pin& m_ls_pin, Pin& pow_pin, uint16_t id)
         : m_ls{m_ls_pin, freq, duty},
           pow{pow_pin},
