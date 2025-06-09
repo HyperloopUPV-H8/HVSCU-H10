@@ -6,9 +6,8 @@
 #include "BatteryPack.hpp"
 #include "IMD.hpp"
 
-#define BATTERIES_CONNECTED 1
+#define BATTERIES_CONNECTED 0
 #define N_BATTERIES 15
-
 namespace HVSCU {
 class Sensors {
     // Voltage sensor
@@ -27,10 +26,7 @@ class Sensors {
     static constexpr Pin &IMD_POW{PE2};
 
     static inline bool reading_sensors_flag{false};
-
-#if BATTERIES_CONNECTED
     static inline bool reading_batteries_flag{false};
-#endif
 
    public:
     static ADCLinearSensor<10> &voltage_sensor() {
@@ -53,7 +49,6 @@ class Sensors {
         return imd;
     }
 
-#if BATTERIES_CONNECTED
     static BatteryPack<N_BATTERIES> &batteries() {
         static BatteryPack<N_BATTERIES> batteries{
             static_cast<uint16_t>(Comms::IDPacket::TOTAL_VOLTAGE),
@@ -61,7 +56,6 @@ class Sensors {
             static_cast<uint16_t>(Comms::IDPacket::BATTERY_1)};
         return batteries;
     }
-#endif
 
     static void init();
     static void start();

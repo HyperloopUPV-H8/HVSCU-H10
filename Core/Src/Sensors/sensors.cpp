@@ -7,9 +7,7 @@ void Sensors::init() {
     voltage_sensor();
     current_sensor();
     imd();
-    if constexpr (BATTERIES_CONNECTED) {
-        batteries();
-    }
+    batteries();
 }
 
 void Sensors::start() {

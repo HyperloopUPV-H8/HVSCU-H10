@@ -83,7 +83,7 @@ void Control::add_protections() {
                                           GeneralSMState::FAULT);
 
     add_protection(&Sensors::voltage_sensor().reading,
-                   Boundary<float, ABOVE>{320});
+                   Boundary<float, ABOVE>{430});
     add_protection(&Sensors::current_sensor().reading,
                    Boundary<float, OUT_OF_RANGE>{-15, 70});
     Time::register_low_precision_alarm(
