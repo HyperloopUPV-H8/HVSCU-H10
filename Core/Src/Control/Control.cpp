@@ -86,8 +86,7 @@ void Control::add_protections() {
                    Boundary<float, ABOVE>{320});
     add_protection(&Sensors::current_sensor().reading,
                    Boundary<float, OUT_OF_RANGE>{-15, 70});
-    // add_protection(&Sensors::sdc_good_value,
-    //                Boundary<PinState, EQUALS>(PinState::OFF));
+    add_protection(&Sensors::sdc().triggered, Boundary<bool, EQUALS>(true));
 
     ProtectionManager::initialize();
 }
