@@ -26,6 +26,9 @@ class Sensors {
     static constexpr Pin &M_LS_PIN{PF7};
     static constexpr Pin &IMD_POW{PE2};
 
+    // SDC
+    static constexpr Pin &SDC_GOOD_PIN{PB12};
+
     static inline bool reading_sensors_flag{false};
     static inline bool reading_batteries_flag{false};
 
@@ -48,11 +51,12 @@ class Sensors {
         static IMD imd{M_LS_PIN, IMD_POW,
                        static_cast<uint16_t>(Comms::IDPacket::IMD)};
         return imd;
+    }
 
-        static SDC &sdc() {
-            static SDC sdc{SDC_GOOD_PIN};
-            return sdc;
-        }
+    static SDC &sdc() {
+        static SDC sdc{SDC_GOOD_PIN};
+        return sdc;
+    }
 
     static BatteryPack<N_BATTERIES> &batteries() {
         static BatteryPack<N_BATTERIES> batteries{
@@ -63,10 +67,10 @@ class Sensors {
     }
     
 
-        static void init();
-        static void start();
-        static void update();
-    };
+    static void init();
+    static void start();
+    static void update();
+};
 }  // namespace HVSCU
 
 #endif
