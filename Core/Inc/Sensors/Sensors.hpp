@@ -6,22 +6,21 @@
 #include "BatteryPack.hpp"
 #include "IMD.hpp"
 
-#define BATTERIES_CONNECTED 0
-#define N_BATTERIES 15
+#define BATTERIES_CONNECTED 1
+#define N_BATTERIES 12
 namespace HVSCU {
 class Sensors {
-    // Voltage sensor
+    // Voltage sensor for HVSCU with ID 1
     static constexpr Pin &VOLTAGE_PIN{PF13};
-    static constexpr float VOLTAGE_SLOPE{124.299234299011000};
-    static constexpr float VOLTAGE_OFFSET{-5.409069953014590};
+    static constexpr float VOLTAGE_SLOPE{145.879241943359};
+    static constexpr float VOLTAGE_OFFSET{-5.83882474899292};
 
-    // Current sensor
+    // Current sensor for HVSCU with ID 1
     static constexpr Pin &CURRENT_PIN{PA0};
     static constexpr float CURRENT_SLOPE{92.27959442138672};
     static constexpr float CURRENT_OFFSET{-152.49656677246094};
 
     // IMD
-    // static constexpr Pin &OK_PIN{??};
     static constexpr Pin &M_LS_PIN{PF7};
     static constexpr Pin &IMD_POW{PE2};
 
