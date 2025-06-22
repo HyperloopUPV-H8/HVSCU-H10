@@ -91,9 +91,9 @@ void Control::add_protections() {
                    Boundary<float, OUT_OF_RANGE>{-15, 70});
 
     // SoCs
-    for (auto& [_, soc] : Sensors::batteries().SoCs) {
-        add_protection(&soc, Boundary<float, BELOW>(24));
-    }
+    // for (auto& [_, soc] : Sensors::batteries().SoCs) {
+    //     add_protection(&soc, Boundary<float, BELOW>(24));
+    // }
 
     // Batteries
     for (auto& rate : Sensors::batteries().driver_diag.success_conv_rates) {
@@ -101,7 +101,7 @@ void Control::add_protections() {
     }
 
     // IMD
-    Time::register_low_precision_alarm(
+    Time::set_timeout(
         2000, +[]() {
             add_protection(&Sensors::imd().is_ok,
                            Boundary<bool, EQUALS>(false));
