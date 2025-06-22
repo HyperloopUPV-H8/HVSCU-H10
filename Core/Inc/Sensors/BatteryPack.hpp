@@ -77,7 +77,6 @@ class BatteryPack {
 
     const BMS<BMSConfig> bms{};
     array<Battery<6>, N_BATTERIES> &batteries = bms.get_data();
-    array<std::pair<uint, float>, N_BATTERIES> SoCs{};
     BMSDiag &driver_diag = bms.get_diag();
     float dummy{0.0};
     bool dummy_bool{false};
@@ -88,6 +87,7 @@ class BatteryPack {
 
    public:
     float total_voltage{FAKE_TOTAL_VOLTAGE};
+    array<std::pair<uint, float>, N_BATTERIES> SoCs{};
 
     BatteryPack(uint16_t total_voltage_id, uint16_t driver_diag_id,
                 uint16_t battery_id)

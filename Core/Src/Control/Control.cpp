@@ -17,7 +17,7 @@ Control::Control()
 
     add_protections();
 
-    STLIB::start("00:80:e1:00:01:07", Comms::HVSCU_IP);
+    STLIB::start("00:80:e1:00:01:07", Comms::HVSCU_IP, "255.255.255.0");
 
     Sensors::start();
     Comms::start();
@@ -82,10 +82,20 @@ void Control::add_protections() {
     ProtectionManager::link_state_machine(general_state_machine,
                                           GeneralSMState::FAULT);
 
+    // DC-bus voltage
     add_protection(&Sensors::voltage_sensor().reading,
                    Boundary<float, ABOVE>{430});
+
+    // Current
     add_protection(&Sensors::current_sensor().reading,
                    Boundary<float, OUT_OF_RANGE>{-15, 70});
+
+    // SoCs
+    for (auto& [_, soc] : Sensors::batteries().SoCs) {
+        add_protection(&soc, Boundary<float, BELOW>(24));
+    }
+
+    // IMD
     Time::register_low_precision_alarm(
         2000, +[]() {
             add_protection(&Sensors::imd().is_ok,
@@ -159,7 +169,7 @@ void Control::update() {
     operational_state_machine.check_transitions();
     ProtectionManager::check_protections();
 
-    for (auto &order : orders[static_cast<GeneralSMState>(
+    for (auto& order : orders[static_cast<GeneralSMState>(
              general_state_machine.current_state)]) {
         order->check_order();
     }
