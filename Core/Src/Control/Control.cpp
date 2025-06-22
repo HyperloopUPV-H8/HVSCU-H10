@@ -95,6 +95,11 @@ void Control::add_protections() {
         add_protection(&soc, Boundary<float, BELOW>(24));
     }
 
+    // Batteries
+    for (auto& rate : Sensors::batteries().driver_diag.success_conv_rates) {
+        add_protection(&rate, Boundary<float, BELOW>(0.9));
+    }
+
     // IMD
     Time::register_low_precision_alarm(
         2000, +[]() {

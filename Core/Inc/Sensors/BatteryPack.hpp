@@ -77,31 +77,32 @@ class BatteryPack {
 
     const BMS<BMSConfig> bms{};
     array<Battery<6>, N_BATTERIES> &batteries = bms.get_data();
-    BMSDiag &driver_diag = bms.get_diag();
     float dummy{0.0};
     bool dummy_bool{false};
 
     HeapPacket total_voltage_packet;
-    HeapPacket driver_diag_packet;
+    HeapPacket reading_period_packet;
     array<std::unique_ptr<HeapPacket>, N_BATTERIES> battery_packets;
 
    public:
     float total_voltage{FAKE_TOTAL_VOLTAGE};
     array<std::pair<uint, float>, N_BATTERIES> SoCs{};
+    BMSDiag<N_BATTERIES> &driver_diag = bms.get_diag();
 
-    BatteryPack(uint16_t total_voltage_id, uint16_t driver_diag_id,
+    BatteryPack(uint16_t total_voltage_id, uint16_t reading_period_id,
                 uint16_t battery_id)
         : total_voltage_packet{total_voltage_id, &total_voltage},
-          driver_diag_packet{driver_diag_id, &driver_diag.reading_period,
-                             &driver_diag.success_conv_rate} {
+          reading_period_packet{reading_period_id,
+                                &driver_diag.reading_period} {
         Comms::add_packet(&total_voltage_packet);
-        Comms::add_packet(&driver_diag_packet);
+        Comms::add_packet(&reading_period_packet);
         for (uint16_t i{0}; i < N_BATTERIES; ++i) {
             battery_packets[i] = std::make_unique<HeapPacket>(
                 battery_id + i, &SoCs[i].second, &batteries[i].cells[0],
                 &batteries[i].cells[1], &batteries[i].cells[2],
                 &batteries[i].cells[3], &batteries[i].cells[4],
-                &batteries[i].cells[5], &dummy, &batteries[i].total_voltage);
+                &batteries[i].cells[5], &dummy, &batteries[i].total_voltage,
+                &driver_diag.success_conv_rates[i]);
 
             Comms::add_packet(battery_packets[i].get());
         }
