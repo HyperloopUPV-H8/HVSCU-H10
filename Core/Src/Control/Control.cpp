@@ -19,6 +19,8 @@ Control::Control()
 
     STLIB::start("00:80:e1:00:01:07", Comms::HVSCU_IP, "255.255.255.0");
 
+    Actuators::sdc_obccu().turn_on();
+
     Sensors::start();
     Comms::start();
     add_orders();
