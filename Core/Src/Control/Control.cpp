@@ -171,7 +171,7 @@ void Control::add_packets() {
 
 void Control::update() {
     STLIB::update();
-    Sensors::update();
+    Sensors::update(static_cast<uint8_t>(operational_state_machine.current_state));
     general_state_machine.check_transitions();
     operational_state_machine.check_transitions();
     ProtectionManager::check_protections();

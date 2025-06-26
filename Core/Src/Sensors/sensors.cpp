@@ -22,13 +22,16 @@ void Sensors::start() {
     imd().power_on();
 }
 
-void Sensors::update() {
+void Sensors::update(uint8_t operational_state_machine_state) {
     if constexpr (BATTERIES_CONNECTED) {
         batteries().update();
 
         if (reading_batteries_flag) {
-            batteries().read(current_sensor().reading);
-            reading_batteries_flag = false;
+            if(operational_state_machine_state != 2){
+                batteries().read(current_sensor().reading);
+            }
+            reading_batteries_flag = false;            
+
         }
     }
     if (reading_sensors_flag) {
