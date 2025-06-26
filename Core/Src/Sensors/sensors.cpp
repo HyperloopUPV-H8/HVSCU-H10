@@ -24,12 +24,12 @@ void Sensors::start() {
 
 void Sensors::update(uint8_t operational_state_machine_state) {
     if constexpr (BATTERIES_CONNECTED) {
-        batteries().update();
+        if(operational_state_machine_state != 2){ // 2 corresponds to HV_CLOSED
+            batteries().update();
+        }
 
         if (reading_batteries_flag) {
-            if(operational_state_machine_state != 2){
-                batteries().read(current_sensor().reading);
-            }
+            batteries().read(current_sensor().reading);
             reading_batteries_flag = false;            
 
         }
