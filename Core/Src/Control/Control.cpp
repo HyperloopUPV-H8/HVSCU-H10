@@ -90,7 +90,7 @@ void Control::add_protections() {
 
     // Current
     add_protection(&Sensors::current_sensor().reading,
-                   Boundary<float, OUT_OF_RANGE>{-15, 70});
+                   Boundary<float, OUT_OF_RANGE>{-15, 200});
 
     // SoCs
     // for (auto& [_, soc] : Sensors::batteries().SoCs) {
@@ -99,7 +99,7 @@ void Control::add_protections() {
 
     // Batteries
     for (auto& rate : Sensors::batteries().driver_diag.success_conv_rates) {
-        add_protection(&rate, Boundary<float, BELOW>(0.9));
+        add_protection(&rate, Boundary<float, BELOW>(0.2));
     }
 
     // IMD

@@ -35,8 +35,8 @@ class Sensors {
         return voltage_sensor;
     }
 
-    static ADCLinearSensor<10> &current_sensor() {
-        static ADCLinearSensor<10> current_sensor{
+    static ADCLinearSensor<15> &current_sensor() {
+        static ADCLinearSensor<15> current_sensor{
             CURRENT_PIN, static_cast<uint16_t>(Comms::IDPacket::CURRENT),
             CURRENT_SLOPE, CURRENT_OFFSET};
         return current_sensor;
