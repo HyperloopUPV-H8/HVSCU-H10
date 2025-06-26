@@ -4,11 +4,12 @@
 #include "BMS.hpp"
 #include "Sensors/Sensors.hpp"
 
-#define READING_PERIOD_US 17000
-#define FAKE_TOTAL_VOLTAGE 250.0  // V
-#define NOMINAL_CAPACITY 6        // Ah
-#define MIN_VOLTAGE 22.0          // V
-#define MAX_VOLTAGE 25.0          // V
+#define READING_PERIOD_US 17000    // us
+#define WINDOW_CONV_SIZE_MS 10000  // s
+#define FAKE_TOTAL_VOLTAGE 250.0   // V
+#define NOMINAL_CAPACITY 6         // Ah
+#define MIN_VOLTAGE 22.0           // V
+#define MAX_VOLTAGE 25.0           // V
 #define OCV_POINTS 256
 
 namespace HVSCU {
@@ -38,6 +39,7 @@ class BatteryPack {
         static int32_t get_tick(void) { return us_counter; }
         static constexpr int32_t tick_resolution_us{500};
         static constexpr int32_t period_us{READING_PERIOD_US};
+        static constexpr int32_t window_conv_size_ms{WINDOW_CONV_SIZE_MS};
     };
 
     template <size_t points>
@@ -87,7 +89,8 @@ class BatteryPack {
    public:
     float total_voltage{FAKE_TOTAL_VOLTAGE};
     array<std::pair<uint, float>, N_BATTERIES> SoCs{};
-    BMSDiag<N_BATTERIES, READING_PERIOD_US> &driver_diag = bms.get_diag();
+    BMSDiag<N_BATTERIES, READING_PERIOD_US, WINDOW_CONV_SIZE_MS> &driver_diag =
+        bms.get_diag();
 
     BatteryPack(uint16_t total_voltage_id, uint16_t reading_period_id,
                 uint16_t battery_id)
