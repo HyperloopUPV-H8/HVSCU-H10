@@ -90,7 +90,7 @@ void Control::add_protections() {
 
     // Current
     add_protection(&Sensors::current_sensor().reading,
-                   Boundary<float, OUT_OF_RANGE>{-15, 200});
+                   Boundary<float, OUT_OF_RANGE>{-15, 85});
 
     // SoCs
     // for (auto& [_, soc] : Sensors::batteries().SoCs) {

@@ -5,7 +5,7 @@
 #include "Sensors/Sensors.hpp"
 
 #define READING_PERIOD_US 17000    // us
-#define WINDOW_CONV_SIZE_MS 10000  // s
+#define WINDOW_CONV_SIZE_MS 20000  // ms
 #define FAKE_TOTAL_VOLTAGE 250.0   // V
 #define NOMINAL_CAPACITY 6         // Ah
 #define MIN_VOLTAGE 22.0           // V
