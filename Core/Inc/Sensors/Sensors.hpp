@@ -58,7 +58,7 @@ class Sensors {
 
     static void init();
     static void start();
-    static void update(uint8_t operational_state_machine_state);
+    static void update();
 };
 }  // namespace HVSCU
 

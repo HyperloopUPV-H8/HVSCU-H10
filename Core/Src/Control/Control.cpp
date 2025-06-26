@@ -99,7 +99,7 @@ void Control::add_protections() {
 
     // Batteries
     for (auto& rate : Sensors::batteries().driver_diag.success_conv_rates) {
-        add_protection(&rate, Boundary<float, BELOW>(0.2));
+        add_protection(&rate, Boundary<float, BELOW>(0.5));
     }
 
     // IMD
@@ -171,7 +171,7 @@ void Control::add_packets() {
 
 void Control::update() {
     STLIB::update();
-    Sensors::update(static_cast<uint8_t>(operational_state_machine.current_state));
+    Sensors::update();
     general_state_machine.check_transitions();
     operational_state_machine.check_transitions();
     ProtectionManager::check_protections();
