@@ -4,7 +4,8 @@
 
 namespace HVSCU {
 class Comms {
-    static std::vector<HeapPacket*> packets;
+    static std::vector<HeapPacket*> backend_packets;
+    static std::vector<HeapPacket*> master_packets;
 
    public:
     enum class IDOrder : uint16_t {
@@ -44,14 +45,16 @@ class Comms {
 
     static const uint16_t CONTROL_STATION_PORT = 50500;
     static const uint16_t PACKETS_ENDPOINT_PORT = 50400;
+    static constexpr std::string MASTER_IP = "192.168.1.3";
     static constexpr std::string CONTROL_SATION_IP = "192.168.0.9";
     static constexpr std::string HVSCU_IP = "192.168.1.7";
 
     static ServerSocket* control_station;
     static DatagramSocket* packets_endpoint;
+    static DatagramSocket* master_endpoint;
 
     static void start();
-    static void add_packet(HeapPacket* packet);
+    static void add_packet(HeapPacket* packet, bool master = false);
     static void send_packets();
 };
 }

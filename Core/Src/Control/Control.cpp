@@ -165,13 +165,13 @@ void Control::add_packets() {
     auto general_state_machine_packet = new HeapPacket(
         static_cast<uint16_t>(Comms::IDPacket::GENERAL_STATE_MACHINE_STATUS),
         &general_state_machine.current_state);
-    Comms::add_packet(general_state_machine_packet);
+    Comms::add_packet(general_state_machine_packet, true);
 
     auto operational_state_machine_packet =
         new HeapPacket(static_cast<uint16_t>(
                            Comms::IDPacket::OPERATIONAL_STATE_MACHINE_STATUS),
                        &operational_state_machine.current_state);
-    Comms::add_packet(operational_state_machine_packet);
+    Comms::add_packet(operational_state_machine_packet, true);
 }
 
 void Control::update() {
