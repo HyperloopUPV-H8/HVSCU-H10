@@ -17,7 +17,7 @@ Control::Control()
 
     add_protections();
 
-    STLIB::start("00:80:e1:00:01:07", Comms::HVSCU_IP, "255.255.255.0");
+    STLIB::start("00:80:e1:00:01:07", Comms::HVSCU_IP, "255.255.0.0");
 
     Actuators::sdc_obccu().turn_on();
 
@@ -93,13 +93,18 @@ void Control::add_protections() {
                    Boundary<float, OUT_OF_RANGE>{-15, 85});
 
     // SoCs
-    // for (auto& [_, soc] : Sensors::batteries().SoCs) {
-    //     add_protection(&soc, Boundary<float, BELOW>(24));
-    // }
+    for (auto& [_, soc] : Sensors::batteries().SoCs) {
+        add_protection(&soc, Boundary<float, BELOW>(0.24));
+    }
 
-    // Batteries
+    // Batteries voltage
     for (auto& rate : Sensors::batteries().driver_diag.success_conv_rates) {
         add_protection(&rate, Boundary<float, BELOW>(0.5));
+    }
+
+    // Batteries temperature
+    for (auto& temp : Sensors::batteries().batteries_temp) {
+        add_protection(&temp, Boundary<float, ABOVE>(50.0));
     }
 
     // IMD

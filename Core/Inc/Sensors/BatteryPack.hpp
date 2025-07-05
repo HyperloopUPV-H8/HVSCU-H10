@@ -12,6 +12,11 @@
 #define MAX_VOLTAGE 25.0           // V
 #define OCV_POINTS 256
 
+#define RESISTANCE_REFERENCE 1000.0  // Ohmios
+#define VOLTAGE_REFERENCE 3.0        // V
+#define R0 100.0                     // Ohmios
+#define TCR 0.00385
+
 namespace HVSCU {
 template <size_t N_BATTERIES>
 class BatteryPack {
@@ -44,10 +49,10 @@ class BatteryPack {
 
     template <size_t points>
     constexpr array<std::pair<float, float>, points> calculate_OCV() {
-        float A{-0.8697};
-        float B{52.1307};
-        float C{-973.6016};
-        float D{5441.4283};
+        float A{-0.008697};
+        float B{0.521307};
+        float C{-9.736016};
+        float D{54.414283};
 
         auto delta = (MAX_VOLTAGE - MIN_VOLTAGE) / (points - 1);
         array<std::pair<float, float>, points> result;
@@ -86,9 +91,34 @@ class BatteryPack {
     HeapPacket reading_period_packet;
     array<std::unique_ptr<HeapPacket>, N_BATTERIES> battery_packets;
 
+    void get_SoC(uint i, float current) {
+        auto now = HAL_GetTick();
+        if (std::abs(current) < 0.1) {
+            // Coulomb counting
+            float delta_time = (now - SoCs[i].first) / 1000.0f;
+            float delta_soc =
+                (current * delta_time) / (NOMINAL_CAPACITY * 3600.0);
+            float new_soc = SoCs[i].second - delta_soc;
+
+            SoCs[i] = std::make_pair(now, new_soc);
+        } else {
+            // OCV
+            float new_soc = lookup_OCV(batteries[i].total_voltage);
+            SoCs[i] = std::make_pair(now, new_soc);
+        }
+    }
+
+    void read_temp(uint i) {
+        auto GPIO_voltage = batteries[i].GPIOs[0];
+        auto resistance = (GPIO_voltage * RESISTANCE_REFERENCE) /
+                          (VOLTAGE_REFERENCE - GPIO_voltage);
+        batteries_temp[i] = (resistance - R0) / (TCR * R0);
+    }
+
    public:
     float total_voltage{FAKE_TOTAL_VOLTAGE};
-    array<std::pair<uint, float>, N_BATTERIES> SoCs{};
+    array<std::pair<uint, float>, N_BATTERIES> SoCs{};  // ms -> soc[0,1]
+    array<float, N_BATTERIES> batteries_temp{};
     BMSDiag<N_BATTERIES, READING_PERIOD_US, WINDOW_CONV_SIZE_MS> &driver_diag =
         bms.get_diag();
 
@@ -104,7 +134,8 @@ class BatteryPack {
                 battery_id + i, &SoCs[i].second, &batteries[i].cells[0],
                 &batteries[i].cells[1], &batteries[i].cells[2],
                 &batteries[i].cells[3], &batteries[i].cells[4],
-                &batteries[i].cells[5], &dummy, &batteries[i].total_voltage,
+                &batteries[i].cells[5], &batteries_temp[i],
+                &batteries[i].total_voltage,
                 &driver_diag.success_conv_rates[i]);
 
             Comms::add_packet(battery_packets[i].get());
@@ -122,29 +153,14 @@ class BatteryPack {
 
     void read(float current) {
         float voltage = 0.0;
-        for (auto &battery : batteries) {
-            voltage += battery.total_voltage;
+        for (uint i = 0; i < N_BATTERIES; ++i) {
+            voltage += batteries[i].total_voltage;
+
+            get_SoC(i, current);
+
+            read_temp(i);
         }
         total_voltage = voltage;
-
-        if (std::abs(current) < 0.1) {
-            // Coulomb counting
-            for (auto &soc : SoCs) {
-                auto now = HAL_GetTick();
-                float delta_time = (now - soc.first) / 1000.0f;
-                float delta_soc = (current * delta_time) / NOMINAL_CAPACITY;
-                float new_soc = soc.second - delta_soc;
-
-                soc = std::make_pair(now, new_soc);
-            }
-        } else {
-            // OCV
-            for (uint i{0}; i < N_BATTERIES; ++i) {
-                auto now = HAL_GetTick();
-                float new_soc = lookup_OCV(batteries[i].total_voltage);
-                SoCs[i] = std::make_pair(now, new_soc);
-            }
-        }
     }
 };
 }  // namespace HVSCU
