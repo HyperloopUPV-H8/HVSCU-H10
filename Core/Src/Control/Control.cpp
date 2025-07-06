@@ -4,10 +4,10 @@
 #include "Comms/Comms.hpp"
 #include "Sensors/Sensors.hpp"
 
-#define set_protection_name(protection, name)               \
-    {                                                       \
-        protection.set_name((char*)malloc(sizeof(name)));   \
-        sprintf(protection.get_name(), "%s", name.c_str()); \
+#define set_protection_name(protection, name)                \
+    {                                                        \
+        protection.set_name((char*)malloc(name.size() + 1)); \
+        sprintf(protection.get_name(), "%s", name.c_str());  \
     }
 namespace HVSCU {
 
