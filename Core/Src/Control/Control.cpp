@@ -4,10 +4,10 @@
 #include "Comms/Comms.hpp"
 #include "Sensors/Sensors.hpp"
 
-#define set_protection_name(protection, name)                \
-    {                                                        \
-        protection.set_name((char*)malloc(name.size() + 1)); \
-        sprintf(protection.get_name(), "%s", name.c_str());  \
+#define set_protection_name(protection, name)                 \
+    {                                                         \
+        protection->set_name((char*)malloc(name.size() + 1)); \
+        sprintf(protection->get_name(), "%s", name.c_str());  \
     }
 namespace HVSCU {
 
@@ -91,13 +91,13 @@ void Control::add_protections() {
                                           GeneralSMState::FAULT);
 
     // DC bus voltage
-    auto protection = ProtectionManager::_add_protection(
+    Protection* protection = &ProtectionManager::_add_protection(
         &Sensors::voltage_sensor().reading, Boundary<float, ABOVE>{430});
     std::string name = "DC bus voltage";
     set_protection_name(protection, name);
 
     // Batteries current
-    protection = ProtectionManager::_add_protection(
+    protection = &ProtectionManager::_add_protection(
         &Sensors::current_sensor().reading,
         Boundary<float, OUT_OF_RANGE>{-15, 85});
     name = "Battery pack current";
@@ -106,7 +106,7 @@ void Control::add_protections() {
     // SoCs
     auto id{1};
     for (auto& [_, soc] : Sensors::batteries().SoCs) {
-        protection = ProtectionManager::_add_protection(
+        protection = &ProtectionManager::_add_protection(
             &soc, Boundary<float, BELOW>(0.24));
         name = "SoC battery " + std::to_string(id);
         set_protection_name(protection, name);
@@ -116,7 +116,7 @@ void Control::add_protections() {
     // Batteries conversion rate
     id = 1;
     for (auto& rate : Sensors::batteries().driver_diag.success_conv_rates) {
-        protection = ProtectionManager::_add_protection(
+        protection = &ProtectionManager::_add_protection(
             &rate, Boundary<float, BELOW>(0.5));
         name = "Conversion rate battery " + std::to_string(id);
         set_protection_name(protection, name);
@@ -126,7 +126,7 @@ void Control::add_protections() {
     // Batteries temperature
     id = 1;
     for (auto& temp : Sensors::batteries().batteries_temp) {
-        protection = ProtectionManager::_add_protection(
+        protection = &ProtectionManager::_add_protection(
             &temp, Boundary<float, ABOVE>(50.0));
         name = "Temperature battery " + std::to_string(id);
         set_protection_name(protection, name);
@@ -136,7 +136,7 @@ void Control::add_protections() {
     // IMD
     Time::set_timeout(
         2000, +[]() {
-            auto protection = ProtectionManager::_add_protection(
+            Protection* protection = &ProtectionManager::_add_protection(
                 &Sensors::imd().is_ok, Boundary<bool, EQUALS>(false));
             std::string name = "IMD";
             set_protection_name(protection, name);
