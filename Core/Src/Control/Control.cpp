@@ -41,10 +41,10 @@ void Control::set_state_machines() {
 
     general_state_machine.add_transition(
         GeneralSMState::CONNECTING, GeneralSMState::OPERATIONAL,
-        []() { return Comms::control_station->is_connected(); });
+        []() { return Comms::order_endpoint->is_connected(); });
     general_state_machine.add_transition(
         GeneralSMState::OPERATIONAL, GeneralSMState::FAULT,
-        []() { return !Comms::control_station->is_connected(); });
+        []() { return !Comms::order_endpoint->is_connected(); });
 
     operational_state_machine.add_transition(
         OperationalSMState::HV_OPEN, OperationalSMState::PRECHARGE,
@@ -84,37 +84,37 @@ void Control::add_protections() {
     ProtectionManager::link_state_machine(general_state_machine,
                                           GeneralSMState::FAULT);
 
-    // DC-bus voltage
-    add_protection(&Sensors::voltage_sensor().reading,
-                   Boundary<float, ABOVE>{430});
+    // // DC-bus voltage
+    // add_protection(&Sensors::voltage_sensor().reading,
+    //                Boundary<float, ABOVE>{430});
 
-    // Current
-    add_protection(&Sensors::current_sensor().reading,
-                   Boundary<float, OUT_OF_RANGE>{-15, 85});
+    // // Current
+    // add_protection(&Sensors::current_sensor().reading,
+    //                Boundary<float, OUT_OF_RANGE>{-15, 85});
 
-    // SoCs
-    for (auto& [_, soc] : Sensors::batteries().SoCs) {
-        add_protection(&soc, Boundary<float, BELOW>(0.24));
-    }
+    // // SoCs
+    // for (auto& [_, soc] : Sensors::batteries().SoCs) {
+    //     add_protection(&soc, Boundary<float, BELOW>(0.24));
+    // }
 
-    // Batteries voltage
-    for (auto& rate : Sensors::batteries().driver_diag.success_conv_rates) {
-        add_protection(&rate, Boundary<float, BELOW>(0.5));
-    }
+    // // Batteries voltage
+    // for (auto& rate : Sensors::batteries().driver_diag.success_conv_rates) {
+    //     add_protection(&rate, Boundary<float, BELOW>(0.5));
+    // }
 
-    // Batteries temperature
-    for (auto& temp : Sensors::batteries().batteries_temp) {
-        add_protection(&temp, Boundary<float, ABOVE>(50.0));
-    }
+    // // Batteries temperature
+    // for (auto& temp : Sensors::batteries().batteries_temp) {
+    //     add_protection(&temp, Boundary<float, ABOVE>(50.0));
+    // }
 
-    // IMD
-    Time::set_timeout(
-        2000, +[]() {
-            add_protection(&Sensors::imd().is_ok,
-                           Boundary<bool, EQUALS>(false));
-        });
+    // // IMD
+    // Time::set_timeout(
+    //     2000, +[]() {
+    //         add_protection(&Sensors::imd().is_ok,
+    //                        Boundary<bool, EQUALS>(false));
+    //     });
 
-    ProtectionManager::initialize();
+    // ProtectionManager::initialize();
 }
 
 void Control::add_orders() {
@@ -165,13 +165,13 @@ void Control::add_packets() {
     auto general_state_machine_packet = new HeapPacket(
         static_cast<uint16_t>(Comms::IDPacket::GENERAL_STATE_MACHINE_STATUS),
         &general_state_machine.current_state);
-    Comms::add_packet(general_state_machine_packet, true);
+    Comms::add_packet(general_state_machine_packet, ROBUST_SM);
 
     auto operational_state_machine_packet =
         new HeapPacket(static_cast<uint16_t>(
                            Comms::IDPacket::OPERATIONAL_STATE_MACHINE_STATUS),
                        &operational_state_machine.current_state);
-    Comms::add_packet(operational_state_machine_packet, true);
+    Comms::add_packet(operational_state_machine_packet, ROBUST_SM);
 }
 
 void Control::update() {
