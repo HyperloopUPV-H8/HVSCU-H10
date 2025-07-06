@@ -145,6 +145,7 @@ class BatteryPack {
     }
 
     void start() {
+        SoCs.fill(std::pair<uint, float>{0, 1.0});
         Time::register_high_precision_alarm(
             500, +[]() { ++BMSConfig::us_counter; });
     }

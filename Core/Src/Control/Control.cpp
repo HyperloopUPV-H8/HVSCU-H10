@@ -218,5 +218,10 @@ void Control::update() {
         Comms::send_packets();
         send_packets_flag = false;
     }
+
+    if (Sensors::sdc().triggered) {
+        Actuators::sdc_obccu().turn_off();
+        ErrorHandler("SDC triggered");
+    }
 }
 }  // namespace HVSCU

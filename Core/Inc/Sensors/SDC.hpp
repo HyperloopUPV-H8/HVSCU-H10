@@ -6,19 +6,10 @@
 namespace HVSCU {
 class SDC {
     SensorInterrupt sdc_good;
-    PinState sdc_good_value{OFF};
-    uint32_t last_interrupt_time{0};
+    PinState sdc_good_value{ON};
 
     void sdc_callback(void) {
-        sdc_good.read();
-        uint32_t now = HAL_GetTick();
-        if (now - last_interrupt_time > 30) {  // Debouncing
-            last_interrupt_time = now;
-
-            if (sdc_good_value == PinState::ON) return;
-
-            triggered = true;
-        }
+        triggered = true;
     }
 
    public:
@@ -26,7 +17,7 @@ class SDC {
 
     SDC(Pin& pin)
         : sdc_good{pin, [&]() { sdc_callback(); }, &sdc_good_value,
-                   TRIGGER::BOTH_EDGES} {};
+                   TRIGGER::FAILING_EDGE} {};
 };
 }  // namespace HVSCU
 
