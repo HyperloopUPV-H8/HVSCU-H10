@@ -54,7 +54,8 @@ class Sensors {
     }
 
     static SDC &sdc() {
-        static SDC sdc{SDC_GOOD_PIN};
+        static SDC sdc{SDC_GOOD_PIN,
+                       static_cast<uint16_t>(Comms::IDPacket::SDC)};
         return sdc;
     }
 
@@ -65,7 +66,6 @@ class Sensors {
             static_cast<uint16_t>(Comms::IDPacket::BATTERY_1)};
         return batteries;
     }
-    
 
     static void init();
     static void start();

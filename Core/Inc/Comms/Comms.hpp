@@ -39,7 +39,8 @@ class Comms {
         GENERAL_STATE_MACHINE_STATUS = 940,
         OPERATIONAL_STATE_MACHINE_STATUS = 941,
         DRIVER_DIAG = 942,
-        IMD = 943
+        IMD = 943,
+        SDC = 944
     };
 
     static const uint16_t CONTROL_STATION_PORT = 50500;
