@@ -90,12 +90,13 @@ void Control::add_protections() {
     ProtectionManager::link_state_machine(general_state_machine,
                                           GeneralSMState::FAULT);
 
-    // Batteries voltage
+    // DC bus voltage
     auto protection = ProtectionManager::_add_protection(
         &Sensors::voltage_sensor().reading, Boundary<float, ABOVE>{430});
     std::string name = "DC bus voltage";
     set_protection_name(protection, name);
 
+    // Batteries current
     protection = ProtectionManager::_add_protection(
         &Sensors::current_sensor().reading,
         Boundary<float, OUT_OF_RANGE>{-15, 85});
