@@ -83,9 +83,6 @@ class BatteryPack {
     }
 
     const BMS<BMSConfig> bms{};
-    array<Battery<6>, N_BATTERIES> &batteries = bms.get_data();
-    float dummy{0.0};
-    bool dummy_bool{false};
 
     HeapPacket total_voltage_packet;
     HeapPacket reading_period_packet;
@@ -116,17 +113,16 @@ class BatteryPack {
     }
 
    public:
+    array<LTC6810Driver::LTC6810<6, READING_PERIOD_US>, N_BATTERIES>
+        &batteries = bms.get_data();
     float total_voltage{FAKE_TOTAL_VOLTAGE};
     array<std::pair<uint, float>, N_BATTERIES> SoCs{};  // ms -> soc[0,1]
     array<float, N_BATTERIES> batteries_temp{};
-    BMSDiag<N_BATTERIES, READING_PERIOD_US, WINDOW_CONV_SIZE_MS> &driver_diag =
-        bms.get_diag();
 
     BatteryPack(uint16_t total_voltage_id, uint16_t reading_period_id,
                 uint16_t battery_id)
         : total_voltage_packet{total_voltage_id, &total_voltage},
-          reading_period_packet{reading_period_id,
-                                &driver_diag.reading_period} {
+          reading_period_packet{reading_period_id, &bms.reading_period} {
         Comms::add_packet(&total_voltage_packet);
         Comms::add_packet(&reading_period_packet);
         for (uint16_t i{0}; i < N_BATTERIES; ++i) {
@@ -135,8 +131,7 @@ class BatteryPack {
                 &batteries[i].cells[1], &batteries[i].cells[2],
                 &batteries[i].cells[3], &batteries[i].cells[4],
                 &batteries[i].cells[5], &batteries_temp[i],
-                &batteries[i].total_voltage,
-                &driver_diag.success_conv_rates[i]);
+                &batteries[i].total_voltage, &batteries[i].conv_rate);
 
             Comms::add_packet(battery_packets[i].get());
         }

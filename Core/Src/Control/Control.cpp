@@ -115,9 +115,9 @@ void Control::add_protections() {
 
     // Batteries conversion rate
     id = 1;
-    for (auto& rate : Sensors::batteries().driver_diag.success_conv_rates) {
+    for (auto& battery : Sensors::batteries().batteries) {
         protection = &ProtectionManager::_add_protection(
-            &rate, Boundary<float, BELOW>(0.5));
+            &battery.conv_rate, Boundary<float, BELOW>(0.5));
         name = "Conversion rate battery " + std::to_string(id);
         set_protection_name(protection, name);
         ++id;
