@@ -25,6 +25,7 @@ class Sensors {
     // IMD
     static constexpr Pin &M_LS_PIN{PF7};
     static constexpr Pin &IMD_POW{PE2};
+    static constexpr Pin &IMD_OK{PA12};
 
     // SDC
     static constexpr Pin &SDC_GOOD_PIN{PB12};
@@ -48,7 +49,7 @@ class Sensors {
     }
 
     static IMD &imd() {
-        static IMD imd{M_LS_PIN, IMD_POW,
+        static IMD imd{M_LS_PIN, IMD_POW, IMD_OK,
                        static_cast<uint16_t>(Comms::IDPacket::IMD)};
         return imd;
     }

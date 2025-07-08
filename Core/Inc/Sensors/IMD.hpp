@@ -27,10 +27,10 @@ class IMD {
     };
 
     PWMSensor<float> m_ls;
+    DigitalOutput pow;
+    DigitalSensor ok;
     float freq{};
     float duty{};
-
-    DigitalOutput pow;
 
     uint8_t status{static_cast<uint8_t>(Status::FAST_EVAL)};
     float resistance{};
@@ -38,27 +38,31 @@ class IMD {
     HeapPacket packet;
 
    public:
+    PinState ok_status{ON};
     bool is_ok{true};
 
-    IMD(Pin& m_ls_pin, Pin& pow_pin, uint16_t id)
+    IMD(Pin& m_ls_pin, Pin& pow_pin, Pin& ok_pin, uint16_t id)
         : m_ls{m_ls_pin, freq, duty},
           pow{pow_pin},
+          ok{ok_pin, ok_status},
           packet{id, &status, &resistance, &is_ok} {
         Comms::add_packet(&packet);
     }
 
     void power_on() { pow.turn_on(); }
 
-    void check_ok() {
+    void calculate_resistance() {
         resistance = ((90 * 1.2e6) / (duty - 5)) - 1.2e6;
-        if (resistance < 100000) {
+    };
+
+    void read() {
+        ok.read();
+        if (ok_status == PinState::OFF) {
             is_ok = false;
         } else {
             is_ok = true;
         }
-    };
 
-    void read() {
         m_ls.read();
         if (lessError(freq, 0, 0.1)) {
             status = static_cast<uint8_t>(Status::SHORTCIRCUIT);
@@ -66,22 +70,16 @@ class IMD {
         }
         if (lessError(freq, 10, 0.1)) {
             status = static_cast<uint8_t>(Status::NORMAL);
-            check_ok();
+            calculate_resistance();
             return;
         }
         if (lessError(freq, 20, 0.1)) {
             status = static_cast<uint8_t>(Status::UNDERVOLTAGE);
-            check_ok();
+            calculate_resistance();
             return;
         }
         if (lessError(freq, 30, 0.1)) {
             status = static_cast<uint8_t>(Status::FAST_EVAL);
-            if (duty < 20) {
-                is_ok = true;
-            } else {
-                is_ok = false;
-            }
-
             return;
         }
         if (lessError(freq, 40, 0.1)) {
