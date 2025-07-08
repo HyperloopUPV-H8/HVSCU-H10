@@ -4,12 +4,12 @@
 #include "BMS.hpp"
 #include "Sensors/Sensors.hpp"
 
-#define READING_PERIOD_US 17000    // us
-#define WINDOW_CONV_SIZE_MS 20000  // ms
-#define FAKE_TOTAL_VOLTAGE 250.0   // V
-#define NOMINAL_CAPACITY 6         // Ah
-#define MIN_VOLTAGE 22.0           // V
-#define MAX_VOLTAGE 25.0           // V
+#define READING_PERIOD_US 17000   // us
+#define CONV_RATE_TIME_MS 1000    // ms
+#define FAKE_TOTAL_VOLTAGE 250.0  // V
+#define NOMINAL_CAPACITY 6        // Ah
+#define MIN_VOLTAGE 22.0          // V
+#define MAX_VOLTAGE 25.0          // V
 #define OCV_POINTS 256
 
 #define RESISTANCE_REFERENCE 1000.0  // Ohmios
@@ -44,7 +44,7 @@ class BatteryPack {
         static int32_t get_tick(void) { return us_counter; }
         static constexpr int32_t tick_resolution_us{500};
         static constexpr int32_t period_us{READING_PERIOD_US};
-        static constexpr int32_t window_conv_size_ms{WINDOW_CONV_SIZE_MS};
+        static constexpr int32_t conv_rate_time_ms{CONV_RATE_TIME_MS};
     };
 
     template <size_t points>
@@ -113,8 +113,8 @@ class BatteryPack {
     }
 
    public:
-    array<LTC6810Driver::LTC6810<6, READING_PERIOD_US>, N_BATTERIES>
-        &batteries = bms.get_data();
+    array<LTC6810Driver::LTC6810<6, READING_PERIOD_US, CONV_RATE_TIME_MS>,
+          N_BATTERIES> &batteries = bms.get_data();
     float total_voltage{FAKE_TOTAL_VOLTAGE};
     array<std::pair<uint, float>, N_BATTERIES> SoCs{};  // ms -> soc[0,1]
     array<float, N_BATTERIES> batteries_temp{};
