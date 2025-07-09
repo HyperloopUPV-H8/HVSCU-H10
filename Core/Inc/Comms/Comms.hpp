@@ -4,7 +4,28 @@
 
 namespace HVSCU {
 class Comms {
-    static std::vector<HeapPacket*> packets;
+   public:
+    enum class Target { LCU, MASTER, CONTROL_STATION };
+
+   private:
+    static std::unordered_map<Target, std::vector<HeapPacket*>> packets;
+
+    // IPs
+    static constexpr std::string LCU_IP = "192.168.1.4";
+    static constexpr std::string MASTER_IP = "192.168.1.3";
+    static constexpr std::string CONTROL_SATION_IP = "192.168.0.9";
+
+    // Ports
+    static const uint16_t ORDER_PORT{50500};
+    static const uint16_t MASTER_PORT{50403};
+    static const uint16_t CONTROL_STATION_PORT{50400};
+    static const uint16_t LCU_PORT{50406};
+
+    // Sockets
+    static ServerSocket* order_endpoint;
+    static DatagramSocket* control_station_endpoint;
+    static DatagramSocket* master_endpoint;
+    static DatagramSocket* lcu_endpoint;
 
    public:
     enum class IDOrder : uint16_t {
@@ -43,16 +64,11 @@ class Comms {
         SDC = 944
     };
 
-    static const uint16_t CONTROL_STATION_PORT = 50500;
-    static const uint16_t PACKETS_ENDPOINT_PORT = 50400;
-    static constexpr std::string CONTROL_SATION_IP = "192.168.0.9";
     static constexpr std::string HVSCU_IP = "192.168.1.7";
 
-    static ServerSocket* control_station;
-    static DatagramSocket* packets_endpoint;
-
     static void start();
-    static void add_packet(HeapPacket* packet);
+    static bool is_order_socket_connected();
+    static void add_packet(Target target, HeapPacket* packet);
     static void send_packets();
 };
-}
+}  // namespace HVSCU

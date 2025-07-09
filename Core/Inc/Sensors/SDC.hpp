@@ -29,7 +29,7 @@ class SDC {
         : sdc_good{pin, [&]() { sdc_callback(); }, &sdc_good_value,
                    TRIGGER::BOTH_EDGES},
           packet{id, &status} {
-        Comms::add_packet(&packet);
+        Comms::add_packet(Comms::Target::CONTROL_STATION, &packet);
     };
 };
 }  // namespace HVSCU

@@ -46,7 +46,7 @@ class IMD {
           pow{pow_pin},
           ok{ok_pin, ok_status},
           packet{id, &status, &resistance, &is_ok} {
-        Comms::add_packet(&packet);
+        Comms::add_packet(Comms::Target::CONTROL_STATION, &packet);
     }
 
     void power_on() { pow.turn_on(); }

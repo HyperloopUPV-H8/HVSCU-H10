@@ -36,15 +36,21 @@ class Sensors {
    public:
     static ADCLinearSensor<10> &voltage_sensor() {
         static ADCLinearSensor<10> voltage_sensor{
-            VOLTAGE_PIN, static_cast<uint16_t>(Comms::IDPacket::VOLTAGE),
-            VOLTAGE_SLOPE, VOLTAGE_OFFSET};
+            VOLTAGE_PIN,
+            static_cast<uint16_t>(Comms::IDPacket::VOLTAGE),
+            VOLTAGE_SLOPE,
+            VOLTAGE_OFFSET,
+            {Comms::Target::CONTROL_STATION, Comms::Target::LCU}};
         return voltage_sensor;
     }
 
     static ADCLinearSensor<15> &current_sensor() {
         static ADCLinearSensor<15> current_sensor{
-            CURRENT_PIN, static_cast<uint16_t>(Comms::IDPacket::CURRENT),
-            CURRENT_SLOPE, CURRENT_OFFSET};
+            CURRENT_PIN,
+            static_cast<uint16_t>(Comms::IDPacket::CURRENT),
+            CURRENT_SLOPE,
+            CURRENT_OFFSET,
+            {Comms::Target::CONTROL_STATION}};
         return current_sensor;
     }
 

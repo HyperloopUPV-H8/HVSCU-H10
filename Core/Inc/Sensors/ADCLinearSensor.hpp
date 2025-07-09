@@ -14,9 +14,12 @@ class ADCLinearSensor {
    public:
     float reading{};
 
-    ADCLinearSensor(Pin& pin, uint16_t id, float slope, float offset)
+    ADCLinearSensor(Pin& pin, uint16_t id, float slope, float offset,
+                    std::vector<Comms::Target> targets)
         : sensor{pin, slope, offset, reading, filter}, packet{id, &reading} {
-        Comms::add_packet(&packet);
+        for (auto& t : targets) {
+            Comms::add_packet(t, &packet);
+        }
     }
 
     void read() { sensor.read(); };
