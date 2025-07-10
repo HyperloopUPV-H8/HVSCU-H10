@@ -5,7 +5,6 @@
 
 namespace HVSCU {
 class SDC {
-    enum class STATUS : uint8_t { ENGAGED, DISENGAGED };
     SensorInterrupt sdc_good;
     PinState sdc_good_value{ON};
 
@@ -15,13 +14,14 @@ class SDC {
         sdc_good.read();
         if (sdc_good_value == PinState::OFF) {
             status = STATUS::DISENGAGED;
-            triggered = true;
         } else {
             status = STATUS::ENGAGED;
         }
     }
 
    public:
+    enum class STATUS : uint8_t { ENGAGED, DISENGAGED };
+
     bool triggered{false};
     STATUS status{STATUS::DISENGAGED};
 

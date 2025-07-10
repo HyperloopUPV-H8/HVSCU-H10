@@ -15,7 +15,8 @@ Control::Control()
     : general_state_machine{},
       operational_state_machine{},
       orders{},
-      send_packets_flag{false} {
+      send_packets_flag{false},
+      sdc_ready{false} {
     Sensors::init();
     Actuators::init();
 
@@ -33,6 +34,7 @@ Control::Control()
     add_packets();
 
     Time::register_low_precision_alarm(17, [&]() { send_packets_flag = true; });
+    Time::set_timeout(2000, [&]() { sdc_ready = true; });
 }
 
 void Control::set_state_machines() {
@@ -223,7 +225,7 @@ void Control::update() {
         send_packets_flag = false;
     }
 
-    if (Sensors::sdc().triggered) {
+    if (sdc_ready && Sensors::sdc().status == SDC::STATUS::DISENGAGED) {
         Actuators::sdc_obccu().turn_off();
         ErrorHandler("SDC triggered");
     }
