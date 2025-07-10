@@ -70,7 +70,8 @@ class Sensors {
         static BatteryPack<N_BATTERIES> batteries{
             static_cast<uint16_t>(Comms::IDPacket::TOTAL_VOLTAGE),
             static_cast<uint16_t>(Comms::IDPacket::DRIVER_DIAG),
-            static_cast<uint16_t>(Comms::IDPacket::BATTERY_1)};
+            static_cast<uint16_t>(Comms::IDPacket::BATTERY_1),
+            static_cast<uint16_t>(Comms::IDPacket::MINIMUM_SOC)};
         return batteries;
     }
 

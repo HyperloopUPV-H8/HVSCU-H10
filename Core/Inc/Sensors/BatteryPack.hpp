@@ -86,22 +86,27 @@ class BatteryPack {
 
     HeapPacket total_voltage_packet;
     HeapPacket reading_period_packet;
+    HeapPacket minimum_soc_packet;
     array<std::unique_ptr<HeapPacket>, N_BATTERIES> battery_packets;
+    float minimum_soc{100.0};
 
     void get_SoC(uint i, float current) {
         auto now = HAL_GetTick();
-        if (std::abs(current) < 0.1) {
-            // Coulomb counting
+        float new_soc;
+        if (std::abs(current) < 0.1) {  // Coulomb counting
             float delta_time = (now - SoCs[i].first) / 1000.0f;
             float delta_soc =
                 (current * delta_time) / (NOMINAL_CAPACITY * 3600.0);
-            float new_soc = SoCs[i].second - delta_soc;
+            new_soc = SoCs[i].second - delta_soc;
 
             SoCs[i] = std::make_pair(now, new_soc);
-        } else {
-            // OCV
-            float new_soc = lookup_OCV(batteries[i].total_voltage);
+        } else {  // OCV
+            new_soc = lookup_OCV(batteries[i].total_voltage);
             SoCs[i] = std::make_pair(now, new_soc);
+        }
+
+        if (new_soc < minimum_soc) {
+            minimum_soc = new_soc;
         }
     }
 
@@ -120,13 +125,15 @@ class BatteryPack {
     array<float, N_BATTERIES> batteries_temp{};
 
     BatteryPack(uint16_t total_voltage_id, uint16_t reading_period_id,
-                uint16_t battery_id)
+                uint16_t battery_id, uint16_t minimum_soc_id)
         : total_voltage_packet{total_voltage_id, &total_voltage},
-          reading_period_packet{reading_period_id, &bms.reading_period} {
+          reading_period_packet{reading_period_id, &bms.reading_period},
+          minimum_soc_packet{minimum_soc_id, &minimum_soc} {
         Comms::add_packet(Comms::Target::CONTROL_STATION,
                           &total_voltage_packet);
         Comms::add_packet(Comms::Target::CONTROL_STATION,
                           &reading_period_packet);
+        Comms::add_packet(Comms::Target::CONTROL_STATION, &minimum_soc_packet);
         for (uint16_t i{0}; i < N_BATTERIES; ++i) {
             battery_packets[i] = std::make_unique<HeapPacket>(
                 battery_id + i, &SoCs[i].second, &batteries[i].cells[0],

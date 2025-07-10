@@ -61,7 +61,8 @@ class Comms {
         OPERATIONAL_STATE_MACHINE_STATUS = 941,
         DRIVER_DIAG = 942,
         IMD = 943,
-        SDC = 944
+        SDC = 944,
+        MINIMUM_SOC = 945
     };
 
     static constexpr std::string HVSCU_IP = "192.168.1.7";
