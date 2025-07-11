@@ -8,7 +8,7 @@
 #include "SDC.hpp"
 
 #define BATTERIES_CONNECTED 1
-#define N_BATTERIES 2
+#define N_BATTERIES 18
 
 namespace HVSCU {
 class Sensors {
