@@ -88,9 +88,9 @@ class BatteryPack {
     HeapPacket reading_period_packet;
     HeapPacket minimum_soc_packet;
     array<std::unique_ptr<HeapPacket>, N_BATTERIES> battery_packets;
-    float minimum_soc{100.0};
+    float minimum_soc{1.0};
 
-    void get_SoC(uint i, float current) {
+    void get_SoC(uint i, float current, float &temp_minimum_soc) {
         auto now = HAL_GetTick();
         float new_soc;
         if (std::abs(current) < 0.1) {  // Coulomb counting
@@ -105,8 +105,8 @@ class BatteryPack {
             SoCs[i] = std::make_pair(now, new_soc);
         }
 
-        if (new_soc < minimum_soc) {
-            minimum_soc = new_soc;
+        if (new_soc < temp_minimum_soc) {
+            temp_minimum_soc = new_soc;
         }
     }
 
@@ -159,14 +159,16 @@ class BatteryPack {
 
     void read(float current) {
         float voltage = 0.0;
+        float temp_minimum_soc = 1.0;
         for (uint i = 0; i < N_BATTERIES; ++i) {
             voltage += batteries[i].total_voltage;
 
-            get_SoC(i, current);
+            get_SoC(i, current, temp_minimum_soc);
 
             read_temp(i);
         }
         total_voltage = voltage;
+        minimum_soc = temp_minimum_soc;
     }
 };
 }  // namespace HVSCU

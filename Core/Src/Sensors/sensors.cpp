@@ -17,7 +17,7 @@ void Sensors::start() {
         Time::register_low_precision_alarm(
             READING_PERIOD_US / 1000, [&]() { reading_batteries_flag = true; });
     }
-    Time::register_low_precision_alarm(17,
+    Time::register_low_precision_alarm(1,
                                        [&]() { reading_sensors_flag = true; });
 
     imd().power_on();

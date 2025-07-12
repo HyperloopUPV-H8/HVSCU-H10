@@ -34,8 +34,8 @@ class Sensors {
     static inline bool reading_batteries_flag{false};
 
    public:
-    static ADCLinearSensor<10> &voltage_sensor() {
-        static ADCLinearSensor<10> voltage_sensor{
+    static ADCLinearSensor<5> &voltage_sensor() {
+        static ADCLinearSensor<5> voltage_sensor{
             VOLTAGE_PIN,
             static_cast<uint16_t>(Comms::IDPacket::VOLTAGE),
             VOLTAGE_SLOPE,
@@ -44,8 +44,8 @@ class Sensors {
         return voltage_sensor;
     }
 
-    static ADCLinearSensor<15> &current_sensor() {
-        static ADCLinearSensor<15> current_sensor{
+    static ADCLinearSensor<5> &current_sensor() {
+        static ADCLinearSensor<5> current_sensor{
             CURRENT_PIN,
             static_cast<uint16_t>(Comms::IDPacket::CURRENT),
             CURRENT_SLOPE,
