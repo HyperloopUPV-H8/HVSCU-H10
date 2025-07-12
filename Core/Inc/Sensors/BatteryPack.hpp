@@ -4,7 +4,7 @@
 #include "BMS.hpp"
 #include "Sensors/Sensors.hpp"
 
-#define READING_PERIOD_US 17000   // us
+#define READING_PERIOD_US 50000   // us
 #define CONV_RATE_TIME_MS 1000    // ms
 #define FAKE_TOTAL_VOLTAGE 250.0  // V
 #define NOMINAL_CAPACITY 6        // Ah

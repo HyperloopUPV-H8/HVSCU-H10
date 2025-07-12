@@ -79,6 +79,7 @@ void Control::set_state_machines() {
     general_state_machine.add_enter_action(
         [this]() {
             Actuators::open_HV();
+            Actuators::sdc_obccu().turn_off();
             Actuators::led_operational().turn_off();
             Actuators::led_fault().turn_on();
         },
@@ -226,7 +227,6 @@ void Control::update() {
     }
 
     if (sdc_ready && Sensors::sdc().status == SDC::STATUS::DISENGAGED) {
-        Actuators::sdc_obccu().turn_off();
         ErrorHandler("SDC triggered");
     }
 }
