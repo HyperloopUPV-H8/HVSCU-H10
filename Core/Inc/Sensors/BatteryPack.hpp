@@ -4,7 +4,7 @@
 #include "BMS.hpp"
 #include "Sensors/Sensors.hpp"
 
-#define READING_PERIOD_US 50000   // us
+#define READING_PERIOD_US 20000   // us
 #define CONV_RATE_TIME_MS 1000    // ms
 #define FAKE_TOTAL_VOLTAGE 250.0  // V
 #define NOMINAL_CAPACITY 6        // Ah
@@ -127,7 +127,7 @@ class BatteryPack {
     BatteryPack(uint16_t total_voltage_id, uint16_t reading_period_id,
                 uint16_t battery_id, uint16_t minimum_soc_id)
         : total_voltage_packet{total_voltage_id, &total_voltage},
-          reading_period_packet{reading_period_id, &bms.reading_period},
+          reading_period_packet{reading_period_id, &bms.get_period()},
           minimum_soc_packet{minimum_soc_id, &minimum_soc} {
         Comms::add_packet(Comms::Target::CONTROL_STATION,
                           &total_voltage_packet);

@@ -9,10 +9,12 @@ class SDC {
     PinState sdc_good_value{ON};
 
     HeapPacket packet;
+    bool enabled{false};
 
     void sdc_callback(void) {
         sdc_good.read();
         if (sdc_good_value == PinState::OFF) {
+            if (enabled) triggered = true;
             status = STATUS::DISENGAGED;
         } else {
             status = STATUS::ENGAGED;
@@ -31,6 +33,8 @@ class SDC {
           packet{id, &status} {
         Comms::add_packet(Comms::Target::CONTROL_STATION, &packet);
     };
+
+    void enable() { enabled = true; };
 };
 }  // namespace HVSCU
 

@@ -83,7 +83,7 @@ SPI::Instance SPI::instance3 = {
     .instance = SPI3,
     .hdma_tx = DMA::Stream::DMA1Stream5,
     .hdma_rx = DMA::Stream::DMA1Stream6,
-    .baud_rate_prescaler = SPI_BAUDRATEPRESCALER_256,
+    .baud_rate_prescaler = SPI_BAUDRATEPRESCALER_128,
     .mode = SPI_MODE_MASTER,
     .use_DMA = false};
 

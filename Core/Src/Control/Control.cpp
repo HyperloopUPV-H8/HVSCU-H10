@@ -15,8 +15,7 @@ Control::Control()
     : general_state_machine{},
       operational_state_machine{},
       orders{},
-      send_packets_flag{false},
-      sdc_ready{false} {
+      send_packets_flag{false} {
     Sensors::init();
     Actuators::init();
 
@@ -34,7 +33,7 @@ Control::Control()
     add_packets();
 
     Time::register_low_precision_alarm(17, [&]() { send_packets_flag = true; });
-    Time::set_timeout(2000, [&]() { sdc_ready = true; });
+    Time::set_timeout(2000, [&]() { Sensors::sdc().enable(); });
 }
 
 void Control::set_state_machines() {
@@ -93,57 +92,57 @@ void Control::add_protections() {
     ProtectionManager::link_state_machine(general_state_machine,
                                           GeneralSMState::FAULT);
 
-    // DC bus voltage
-    Protection* protection = &ProtectionManager::_add_protection(
-        &Sensors::voltage_sensor().reading, Boundary<float, ABOVE>{430});
-    std::string name = "DC bus voltage";
-    set_protection_name(protection, name);
+    // // DC bus voltage
+    // Protection* protection = &ProtectionManager::_add_protection(
+    //     &Sensors::voltage_sensor().reading, Boundary<float, ABOVE>{430});
+    // std::string name = "DC bus voltage";
+    // set_protection_name(protection, name);
 
-    // Batteries current
-    protection = &ProtectionManager::_add_protection(
-        &Sensors::current_sensor().reading,
-        Boundary<float, OUT_OF_RANGE>{-15, 85});
-    name = "Battery pack current";
-    set_protection_name(protection, name);
+    // // Batteries current
+    // protection = &ProtectionManager::_add_protection(
+    //     &Sensors::current_sensor().reading,
+    //     Boundary<float, OUT_OF_RANGE>{-15, 85});
+    // name = "Battery pack current";
+    // set_protection_name(protection, name);
 
-    // SoCs
-    auto id{1};
-    for (auto& [_, soc] : Sensors::batteries().SoCs) {
-        protection = &ProtectionManager::_add_protection(
-            &soc, Boundary<float, BELOW>(0.24));
-        name = "SoC battery " + std::to_string(id);
-        set_protection_name(protection, name);
-        ++id;
-    }
+    // // SoCs
+    // auto id{1};
+    // for (auto& [_, soc] : Sensors::batteries().SoCs) {
+    //     protection = &ProtectionManager::_add_protection(
+    //         &soc, Boundary<float, BELOW>(0.24));
+    //     name = "SoC battery " + std::to_string(id);
+    //     set_protection_name(protection, name);
+    //     ++id;
+    // }
 
-    // Batteries conversion rate
-    id = 1;
-    for (auto& battery : Sensors::batteries().batteries) {
-        protection = &ProtectionManager::_add_protection(
-            &battery.conv_rate, Boundary<float, BELOW>(0.5));
-        name = "Conversion rate battery " + std::to_string(id);
-        set_protection_name(protection, name);
-        ++id;
-    }
+    // // Batteries conversion rate
+    // id = 1;
+    // for (auto& battery : Sensors::batteries().batteries) {
+    //     protection = &ProtectionManager::_add_protection(
+    //         &battery.conv_rate, Boundary<float, BELOW>(0.5));
+    //     name = "Conversion rate battery " + std::to_string(id);
+    //     set_protection_name(protection, name);
+    //     ++id;
+    // }
 
-    // Batteries temperature
-    id = 1;
-    for (auto& temp : Sensors::batteries().batteries_temp) {
-        protection = &ProtectionManager::_add_protection(
-            &temp, Boundary<float, ABOVE>(50.0));
-        name = "Temperature battery " + std::to_string(id);
-        set_protection_name(protection, name);
-        ++id;
-    }
+    // // Batteries temperature
+    // id = 1;
+    // for (auto& temp : Sensors::batteries().batteries_temp) {
+    //     protection = &ProtectionManager::_add_protection(
+    //         &temp, Boundary<float, ABOVE>(50.0));
+    //     name = "Temperature battery " + std::to_string(id);
+    //     set_protection_name(protection, name);
+    //     ++id;
+    // }
 
-    // IMD
-    Time::set_timeout(
-        2000, +[]() {
-            Protection* protection = &ProtectionManager::_add_protection(
-                &Sensors::imd().is_ok, Boundary<bool, EQUALS>(false));
-            std::string name = "IMD";
-            set_protection_name(protection, name);
-        });
+    // // IMD
+    // Time::set_timeout(
+    //     2000, +[]() {
+    //         Protection* protection = &ProtectionManager::_add_protection(
+    //             &Sensors::imd().is_ok, Boundary<bool, EQUALS>(false));
+    //         std::string name = "IMD";
+    //         set_protection_name(protection, name);
+    //     });
 
     ProtectionManager::initialize();
 }
@@ -226,7 +225,7 @@ void Control::update() {
         send_packets_flag = false;
     }
 
-    if (sdc_ready && Sensors::sdc().status == SDC::STATUS::DISENGAGED) {
+    if (Sensors::sdc().triggered) {
         ErrorHandler("SDC triggered");
     }
 }

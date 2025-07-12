@@ -27,7 +27,6 @@ class Control {
     StateMachine operational_state_machine;
     std::unordered_map<GeneralSMState, std::vector<OrderBase*>> orders;
     bool send_packets_flag;
-    bool sdc_ready;
 
 #if SMART_PRECHARGE
     uint8_t precharge_timer_id;
