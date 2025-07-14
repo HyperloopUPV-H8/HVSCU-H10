@@ -146,6 +146,7 @@ class BatteryPack {
                               battery_packets[i].get());
         }
 
+        SoCs.fill({0, 1.0});
         BMSConfig::spi_id = SPI::inscribe(SPI::spi3);
     }
 
