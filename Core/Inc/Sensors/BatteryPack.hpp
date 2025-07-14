@@ -110,11 +110,13 @@ class BatteryPack {
         }
     }
 
-    void read_temp(uint i) {
-        auto GPIO_voltage = batteries[i].GPIOs[0];
-        auto resistance = (GPIO_voltage * RESISTANCE_REFERENCE) /
-                          (VOLTAGE_REFERENCE - GPIO_voltage);
-        batteries_temp[i] = (resistance - R0) / (TCR * R0);
+    void read_temps(uint i) {
+        for (auto j{0}; j < 2; ++j) {
+            auto GPIO_voltage = batteries[i].GPIOs[j];
+            auto resistance = (GPIO_voltage * RESISTANCE_REFERENCE) /
+                              (VOLTAGE_REFERENCE - GPIO_voltage);
+            batteries_temp[i][j] = (resistance - R0) / (TCR * R0);
+        }
     }
 
    public:
@@ -122,7 +124,7 @@ class BatteryPack {
           N_BATTERIES> &batteries = bms.get_data();
     float total_voltage{FAKE_TOTAL_VOLTAGE};
     array<std::pair<uint, float>, N_BATTERIES> SoCs{};  // ms -> soc[0,1]
-    array<float, N_BATTERIES> batteries_temp{};
+    array<array<float, 2>, N_BATTERIES> batteries_temp{};
 
     BatteryPack(uint16_t total_voltage_id, uint16_t reading_period_id,
                 uint16_t battery_id, uint16_t minimum_soc_id)
@@ -139,8 +141,9 @@ class BatteryPack {
                 battery_id + i, &SoCs[i].second, &batteries[i].cells[0],
                 &batteries[i].cells[1], &batteries[i].cells[2],
                 &batteries[i].cells[3], &batteries[i].cells[4],
-                &batteries[i].cells[5], &batteries_temp[i],
-                &batteries[i].total_voltage, &batteries[i].conv_rate);
+                &batteries[i].cells[5], &batteries_temp[i][0],
+                &batteries_temp[i][1], &batteries[i].total_voltage,
+                &batteries[i].conv_rate);
 
             Comms::add_packet(Comms::Target::CONTROL_STATION,
                               battery_packets[i].get());
@@ -166,7 +169,7 @@ class BatteryPack {
 
             get_SoC(i, current, temp_minimum_soc);
 
-            read_temp(i);
+            read_temps(i);
         }
         total_voltage = voltage;
         minimum_soc = temp_minimum_soc;

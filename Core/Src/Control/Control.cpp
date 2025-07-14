@@ -129,10 +129,15 @@ void Control::add_protections() {
     id = 1;
     for (auto& temp : Sensors::batteries().batteries_temp) {
         protection = &ProtectionManager::_add_protection(
-            &temp, Boundary<float, ABOVE>(50.0));
-        name = "Temperature battery " + std::to_string(id);
+            &temp[0], Boundary<float, ABOVE>(50.0));
+        name = "Temperature 1 battery " + std::to_string(id);
         set_protection_name(protection, name);
-        protections.push_back(protection);
+
+        protection = &ProtectionManager::_add_protection(
+            &temp[1], Boundary<float, ABOVE>(50.0));
+        name = "Temperature 2 battery " + std::to_string(id);
+        set_protection_name(protection, name);
+
         ++id;
     }
 
