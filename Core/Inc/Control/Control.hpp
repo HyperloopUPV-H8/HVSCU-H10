@@ -22,11 +22,15 @@ class Control {
         HV_CLOSED = 2,
         CHARGING = 3
     };
+    enum class BmsStatus : uint8_t { OK, FAULT };
 
-    StateMachine general_state_machine;
-    StateMachine operational_state_machine;
+    StateMachine general_state_machine{CONNECTING};
+    StateMachine operational_state_machine{HV_OPEN};
     std::unordered_map<GeneralSMState, std::vector<OrderBase*>> orders;
-    bool send_packets_flag;
+    std::vector<Protection*> protections;
+
+    BmsStatus bms_status{BmsStatus::OK};
+    bool send_packets_flag{false};
 
 #if SMART_PRECHARGE
     uint8_t precharge_timer_id;
@@ -47,6 +51,7 @@ class Control {
     void add_orders();
     void add_packets();
     void add_protections();
+    void check_bms_status();
 
    public:
     Control();

@@ -62,7 +62,8 @@ class Comms {
         DRIVER_DIAG = 942,
         IMD = 943,
         SDC = 944,
-        MINIMUM_SOC = 945
+        MINIMUM_SOC = 945,
+        BMS_STATUS = 946
     };
 
     static constexpr std::string HVSCU_IP = "192.168.1.7";

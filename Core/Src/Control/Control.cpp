@@ -11,11 +11,7 @@
     }
 namespace HVSCU {
 
-Control::Control()
-    : general_state_machine{},
-      operational_state_machine{},
-      orders{},
-      send_packets_flag{false} {
+Control::Control() {
     Sensors::init();
     Actuators::init();
 
@@ -97,6 +93,7 @@ void Control::add_protections() {
         &Sensors::voltage_sensor().reading, Boundary<float, ABOVE>{430});
     std::string name = "DC bus voltage";
     set_protection_name(protection, name);
+    protections.push_back(protection);
 
     // Batteries current
     protection = &ProtectionManager::_add_protection(
@@ -104,6 +101,7 @@ void Control::add_protections() {
         Boundary<float, OUT_OF_RANGE>{-15, 85});
     name = "Battery pack current";
     set_protection_name(protection, name);
+    protections.push_back(protection);
 
     // SoCs
     auto id{1};
@@ -112,42 +110,40 @@ void Control::add_protections() {
             &soc, Boundary<float, BELOW>(0.24));
         name = "SoC battery " + std::to_string(id);
         set_protection_name(protection, name);
+        protections.push_back(protection);
         ++id;
     }
 
     // Batteries conversion rate
-    auto id = 1;
+    id = 1;
     for (auto& battery : Sensors::batteries().batteries) {
         protection = &ProtectionManager::_add_protection(
             &battery.conv_rate, Boundary<float, BELOW>(0.5));
         name = "Conversion rate battery " + std::to_string(id);
         set_protection_name(protection, name);
+        protections.push_back(protection);
         ++id;
     }
-
-    // Ñapa historica
-    const std::set<int> allowed_ids = {1, 3, 5, 7, 9, 11, 13, 15, 16, 17};
 
     // Batteries temperature
     id = 1;
     for (auto& temp : Sensors::batteries().batteries_temp) {
-        if (allowed_ids.count(id)) {
-            protection = &ProtectionManager::_add_protection(
-                &temp, Boundary<float, ABOVE>(50.0));
-            name = "Temperature battery " + std::to_string(id);
-            set_protection_name(protection, name);
-        }
+        protection = &ProtectionManager::_add_protection(
+            &temp, Boundary<float, ABOVE>(50.0));
+        name = "Temperature battery " + std::to_string(id);
+        set_protection_name(protection, name);
+        protections.push_back(protection);
         ++id;
     }
 
     // IMD
-    Time::set_timeout(
-        2000, +[]() {
-            Protection* protection = &ProtectionManager::_add_protection(
-                &Sensors::imd().is_ok, Boundary<bool, EQUALS>(false));
-            std::string name = "IMD";
-            set_protection_name(protection, name);
-        });
+    Time::set_timeout(2000, [this]() {
+        Protection* protection = &ProtectionManager::_add_protection(
+            &Sensors::imd().is_ok, Boundary<bool, EQUALS>(false));
+        std::string name = "IMD";
+        set_protection_name(protection, name);
+        protections.push_back(protection);
+    });
 
     ProtectionManager::initialize();
 }
@@ -211,6 +207,20 @@ void Control::add_packets() {
     Comms::add_packet(Comms::Target::CONTROL_STATION,
                       operational_state_machine_packet);
     Comms::add_packet(Comms::Target::MASTER, operational_state_machine_packet);
+
+    auto bms_status_packet = new HeapPacket(
+        static_cast<uint16_t>(Comms::IDPacket::BMS_STATUS), &bms_status);
+    Comms::add_packet(Comms::Target::MASTER, bms_status_packet);
+}
+
+void Control::check_bms_status() {
+    for (auto p : protections) {
+        if (p->check_state() == Protections::FaultType::FAULT) {
+            bms_status = BmsStatus::FAULT;
+            return;
+        }
+    }
+    bms_status = BmsStatus::OK;
 }
 
 void Control::update() {
@@ -219,6 +229,7 @@ void Control::update() {
     general_state_machine.check_transitions();
     operational_state_machine.check_transitions();
     ProtectionManager::check_protections();
+    check_bms_status();
 
     for (auto& order : orders[static_cast<GeneralSMState>(
              general_state_machine.current_state)]) {
