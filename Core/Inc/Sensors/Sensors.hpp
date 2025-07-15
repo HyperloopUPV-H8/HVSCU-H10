@@ -8,7 +8,7 @@
 #include "SDC.hpp"
 
 #define BATTERIES_CONNECTED 1
-#define N_BATTERIES 18
+#define N_BATTERIES 15
 
 namespace HVSCU {
 class Sensors {
@@ -71,7 +71,8 @@ class Sensors {
             static_cast<uint16_t>(Comms::IDPacket::TOTAL_VOLTAGE),
             static_cast<uint16_t>(Comms::IDPacket::DRIVER_DIAG),
             static_cast<uint16_t>(Comms::IDPacket::BATTERY_1),
-            static_cast<uint16_t>(Comms::IDPacket::MINIMUM_SOC)};
+            static_cast<uint16_t>(Comms::IDPacket::MINIMUM_SOC),
+            static_cast<uint16_t>(Comms::IDPacket::BATTERIES_DATA)};
         return batteries;
     }
 

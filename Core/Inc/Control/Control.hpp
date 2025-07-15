@@ -4,7 +4,7 @@
 #include "Comms/HVSCUOrder.hpp"
 #include "ST-LIB.hpp"
 
-#define PERCENTAGE_TO_FINISH_PRECHARGE 0.90
+#define PERCENTAGE_TO_FINISH_PRECHARGE 0.95
 #define SMART_PRECHARGE 1
 
 namespace HVSCU {
@@ -22,15 +22,16 @@ class Control {
         HV_CLOSED = 2,
         CHARGING = 3
     };
-    enum class BmsStatus : uint8_t { OK, FAULT };
+    enum BmsStatus : uint8_t { OK, BMS_FAULT };
 
-    StateMachine general_state_machine{CONNECTING};
-    StateMachine operational_state_machine{HV_OPEN};
+    StateMachine general_state_machine;
+    StateMachine operational_state_machine;
     std::unordered_map<GeneralSMState, std::vector<OrderBase*>> orders;
     std::vector<Protection*> protections;
 
-    BmsStatus bms_status{BmsStatus::OK};
+    BmsStatus bms_status{OK};
     bool send_packets_flag{false};
+    bool powered_on{false};
 
 #if SMART_PRECHARGE
     uint8_t precharge_timer_id;

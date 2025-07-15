@@ -29,7 +29,8 @@ Control::Control() {
     add_packets();
 
     Time::register_low_precision_alarm(17, [&]() { send_packets_flag = true; });
-    Time::set_timeout(2000, [&]() { Sensors::sdc().enable(); });
+    Time::set_timeout(1000, [this]() { powered_on = true; });
+    Time::set_timeout(2000, +[]() { Sensors::sdc().enable(); });
 }
 
 void Control::set_state_machines() {
@@ -132,11 +133,13 @@ void Control::add_protections() {
             &temp[0], Boundary<float, ABOVE>(50.0));
         name = "Temperature 1 battery " + std::to_string(id);
         set_protection_name(protection, name);
+        protections.push_back(protection);
 
         protection = &ProtectionManager::_add_protection(
             &temp[1], Boundary<float, ABOVE>(50.0));
         name = "Temperature 2 battery " + std::to_string(id);
         set_protection_name(protection, name);
+        protections.push_back(protection);
 
         ++id;
     }
@@ -215,13 +218,13 @@ void Control::add_packets() {
 
     auto bms_status_packet = new HeapPacket(
         static_cast<uint16_t>(Comms::IDPacket::BMS_STATUS), &bms_status);
-    Comms::add_packet(Comms::Target::MASTER, bms_status_packet);
+    Comms::add_packet(Comms::Target::CONTROL_STATION, bms_status_packet);
 }
 
 void Control::check_bms_status() {
-    for (auto p : protections) {
+    for (auto& p : protections) {
         if (p->check_state() == Protections::FaultType::FAULT) {
-            bms_status = BmsStatus::FAULT;
+            bms_status = BMS_FAULT;
             return;
         }
     }
@@ -233,8 +236,10 @@ void Control::update() {
     Sensors::update();
     general_state_machine.check_transitions();
     operational_state_machine.check_transitions();
-    ProtectionManager::check_protections();
-    check_bms_status();
+    if (powered_on) {
+        ProtectionManager::check_protections();
+        check_bms_status();
+    }
 
     for (auto& order : orders[static_cast<GeneralSMState>(
              general_state_machine.current_state)]) {

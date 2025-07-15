@@ -2,7 +2,6 @@
 #define BATTERY_PACK_HPP
 
 #include "BMS.hpp"
-#include "Sensors/Sensors.hpp"
 
 #define READING_PERIOD_US 20000   // us
 #define CONV_RATE_TIME_MS 1000    // ms
@@ -20,6 +19,8 @@
 namespace HVSCU {
 template <size_t N_BATTERIES>
 class BatteryPack {
+    using Battery =
+        LTC6810Driver::LTC6810<6, READING_PERIOD_US, CONV_RATE_TIME_MS>;
     struct BMSConfig {
         static inline uint8_t spi_id{};
         static inline int32_t us_counter{};
@@ -87,8 +88,13 @@ class BatteryPack {
     HeapPacket total_voltage_packet;
     HeapPacket reading_period_packet;
     HeapPacket minimum_soc_packet;
+    HeapPacket batteries_data_packet;
     array<std::unique_ptr<HeapPacket>, N_BATTERIES> battery_packets;
     float minimum_soc{1.0};
+    float minimum_temp{100.0};
+    float maximum_temp{-100.0};
+    float minimum_cell_voltage{5.0};
+    float maximum_cell_voltage{0.0};
 
     void get_SoC(uint i, float current, float &temp_minimum_soc) {
         auto now = HAL_GetTick();
@@ -105,37 +111,43 @@ class BatteryPack {
             SoCs[i] = std::make_pair(now, new_soc);
         }
 
-        if (new_soc < temp_minimum_soc) {
-            temp_minimum_soc = new_soc;
-        }
+        temp_minimum_soc = std::min(temp_minimum_soc, new_soc);
     }
 
     void read_temps(uint i) {
-        for (auto j{0}; j < 2; ++j) {
-            auto GPIO_voltage = batteries[i].GPIOs[j];
-            auto resistance = (GPIO_voltage * RESISTANCE_REFERENCE) /
-                              (VOLTAGE_REFERENCE - GPIO_voltage);
-            batteries_temp[i][j] = (resistance - R0) / (TCR * R0);
-        }
+        auto GPIO_voltage = batteries[i].GPIOs[0];
+        auto resistance = (GPIO_voltage * RESISTANCE_REFERENCE) /
+                          (VOLTAGE_REFERENCE - GPIO_voltage);
+        batteries_temp[i][0] = (resistance - R0) / (TCR * R0);
+
+        GPIO_voltage = batteries[i].GPIOs[1];
+        resistance = (GPIO_voltage * RESISTANCE_REFERENCE) /
+                     (VOLTAGE_REFERENCE - GPIO_voltage);
+        batteries_temp[i][1] = (resistance - R0) / (TCR * R0);
     }
 
    public:
-    array<LTC6810Driver::LTC6810<6, READING_PERIOD_US, CONV_RATE_TIME_MS>,
-          N_BATTERIES> &batteries = bms.get_data();
+    array<Battery, N_BATTERIES> &batteries = bms.get_data();
     float total_voltage{FAKE_TOTAL_VOLTAGE};
     array<std::pair<uint, float>, N_BATTERIES> SoCs{};  // ms -> soc[0,1]
     array<array<float, 2>, N_BATTERIES> batteries_temp{};
 
     BatteryPack(uint16_t total_voltage_id, uint16_t reading_period_id,
-                uint16_t battery_id, uint16_t minimum_soc_id)
+                uint16_t battery_id, uint16_t minimum_soc_id,
+                uint16_t batteries_data_id)
         : total_voltage_packet{total_voltage_id, &total_voltage},
           reading_period_packet{reading_period_id, &bms.get_period()},
-          minimum_soc_packet{minimum_soc_id, &minimum_soc} {
+          minimum_soc_packet{minimum_soc_id, &minimum_soc},
+          batteries_data_packet{batteries_data_id, &minimum_cell_voltage,
+                                &maximum_cell_voltage, &minimum_temp,
+                                &maximum_temp} {
         Comms::add_packet(Comms::Target::CONTROL_STATION,
                           &total_voltage_packet);
         Comms::add_packet(Comms::Target::CONTROL_STATION,
                           &reading_period_packet);
         Comms::add_packet(Comms::Target::CONTROL_STATION, &minimum_soc_packet);
+        Comms::add_packet(Comms::Target::CONTROL_STATION,
+                          &batteries_data_packet);
         for (uint16_t i{0}; i < N_BATTERIES; ++i) {
             battery_packets[i] = std::make_unique<HeapPacket>(
                 battery_id + i, &SoCs[i].second, &batteries[i].cells[0],
@@ -162,17 +174,37 @@ class BatteryPack {
     void update() { bms.update(); }
 
     void read(float current) {
-        float voltage = 0.0;
-        float temp_minimum_soc = 1.0;
+        float voltage{};
+        float temp_minimum_soc{1.0};
+        float min_v_cell_temp{std::numeric_limits<float>::max()};
+        float max_v_cell_temp{std::numeric_limits<float>::min()};
+        float min_temperature_temp{std::numeric_limits<float>::max()};
+        float max_temperature_temp{std::numeric_limits<float>::min()};
+
         for (uint i = 0; i < N_BATTERIES; ++i) {
             voltage += batteries[i].total_voltage;
 
             get_SoC(i, current, temp_minimum_soc);
 
             read_temps(i);
+
+            for (const auto &v : batteries[i].cells) {
+                min_v_cell_temp = std::min(min_v_cell_temp, v);
+                max_v_cell_temp = std::max(max_v_cell_temp, v);
+            }
+
+            for (const auto &t : batteries_temp[i]) {
+                min_temperature_temp = std::min(min_temperature_temp, t);
+                max_temperature_temp = std::max(max_temperature_temp, t);
+            }
         }
+
         total_voltage = voltage;
         minimum_soc = temp_minimum_soc;
+        minimum_cell_voltage = min_v_cell_temp;
+        maximum_cell_voltage = max_v_cell_temp;
+        minimum_temp = min_temperature_temp;
+        maximum_temp = max_temperature_temp;
     }
 };
 }  // namespace HVSCU

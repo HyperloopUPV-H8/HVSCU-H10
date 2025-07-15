@@ -63,7 +63,8 @@ class Comms {
         IMD = 943,
         SDC = 944,
         MINIMUM_SOC = 945,
-        BMS_STATUS = 946
+        BMS_STATUS = 946,
+        BATTERIES_DATA = 947
     };
 
     static constexpr std::string HVSCU_IP = "192.168.1.7";
