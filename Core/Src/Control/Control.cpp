@@ -29,8 +29,10 @@ Control::Control() {
     add_packets();
 
     Time::register_low_precision_alarm(17, [&]() { send_packets_flag = true; });
-    Time::set_timeout(1000, [this]() { powered_on = true; });
-    Time::set_timeout(2000, +[]() { Sensors::sdc().enable(); });
+    Time::set_timeout(2000, [this]() {
+        powered_on = true;
+        Sensors::sdc().enable();
+    });
 }
 
 void Control::set_state_machines() {
@@ -144,15 +146,6 @@ void Control::add_protections() {
         ++id;
     }
 
-    // IMD
-    Time::set_timeout(2000, [this]() {
-        Protection* protection = &ProtectionManager::_add_protection(
-            &Sensors::imd().is_ok, Boundary<bool, EQUALS>(false));
-        std::string name = "IMD";
-        set_protection_name(protection, name);
-        protections.push_back(protection);
-    });
-
     ProtectionManager::initialize();
 }
 
@@ -239,6 +232,14 @@ void Control::update() {
     if (powered_on) {
         ProtectionManager::check_protections();
         check_bms_status();
+
+        if (Sensors::sdc().triggered) {
+            ErrorHandler("SDC triggered");
+        }
+
+        if (!Sensors::imd().is_ok) {
+            ErrorHandler("Insulation FAULT");
+        }
     }
 
     for (auto& order : orders[static_cast<GeneralSMState>(
@@ -249,10 +250,6 @@ void Control::update() {
     if (send_packets_flag) {
         Comms::send_packets();
         send_packets_flag = false;
-    }
-
-    if (Sensors::sdc().triggered) {
-        ErrorHandler("SDC triggered");
     }
 }
 }  // namespace HVSCU
