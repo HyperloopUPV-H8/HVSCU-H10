@@ -160,6 +160,10 @@ void Control::add_orders() {
 
     auto close_contactor_order =
         new Order<Comms::IDOrder::CLOSE_CONTACTORS_ID>([this]() {
+            if (Sensors::sdc().status == SDC::STATUS::DISENGAGED) {
+                WARNING("You have to engage SDC to precharge");
+                return;
+            }
             Actuators::start_precharge();
 #if SMART_PRECHARGE
             precharge_timer_id = 0;

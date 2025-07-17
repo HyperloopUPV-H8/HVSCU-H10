@@ -16,6 +16,8 @@
 #define R0 100.0                     // Ohmios
 #define TCR 0.00385
 
+#define TEMP_CHEAT 1  // Ñapa para temperaturas, esto no debería existir
+
 namespace HVSCU {
 template <size_t N_BATTERIES>
 class BatteryPack {
@@ -96,6 +98,10 @@ class BatteryPack {
     float minimum_cell_voltage{5.0};
     float maximum_cell_voltage{0.0};
 
+#if TEMP_CHEAT
+    FloatMovingAverage<100> temp_average{};
+#endif
+
     void get_SoC(uint i, float current, float &temp_minimum_soc) {
         auto now = HAL_GetTick();
         float new_soc;
@@ -115,15 +121,22 @@ class BatteryPack {
     }
 
     void read_temps(uint i) {
-        auto GPIO_voltage = batteries[i].GPIOs[0];
-        auto resistance = (GPIO_voltage * RESISTANCE_REFERENCE) /
-                          (VOLTAGE_REFERENCE - GPIO_voltage);
-        batteries_temp[i][0] = (resistance - R0) / (TCR * R0);
+        for (auto j{0}; j < 2; ++j) {
+            auto GPIO_voltage = batteries[i].GPIOs[j];
+            auto resistance = (GPIO_voltage * RESISTANCE_REFERENCE) /
+                              (VOLTAGE_REFERENCE - GPIO_voltage);
 
-        GPIO_voltage = batteries[i].GPIOs[1];
-        resistance = (GPIO_voltage * RESISTANCE_REFERENCE) /
-                     (VOLTAGE_REFERENCE - GPIO_voltage);
-        batteries_temp[i][1] = (resistance - R0) / (TCR * R0);
+            if constexpr (TEMP_CHEAT) {
+                auto temp = (resistance - R0) / (TCR * R0);
+                auto val_average = temp_average.compute(temp);
+                if (std::abs(temp - val_average) > 5) {
+                    temp = val_average;
+                }
+                batteries_temp[i][j] = temp;
+            } else {
+                batteries_temp[i][j] = (resistance - R0) / (TCR * R0);
+            }
+        }
     }
 
    public:
