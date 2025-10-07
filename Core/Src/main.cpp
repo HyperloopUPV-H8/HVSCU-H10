@@ -160,15 +160,15 @@ int main(void) {
 
     led_fault = new DigitalOutput(PIN_LED_FAULT);
     led_operational = new DigitalOutput(PIN_LED_OPERATIONAL);
-    Time::register_low_precision_alarm(500,
-                                       [&]() { led_operational->toggle(); });
+    auto led_id = Time::register_low_precision_alarm(
+        200, [&]() { led_operational->toggle(); });
 
     PFM::init(PIN_PWM_P, PIN_PWM_N, PIN_PWM_BUFFER_EN, PIN_OBCPU_RESET);
 
     input_current_sensor =
         new OBCPUSensor<100>(PIN_INPUT_CURRENT_OBCPU, 601, 1, 0);
     output_current_sensor = new OBCPUSensor<100>(
-        PIN_OUTPUT_CURRENT_OBCPU, 602, -2.030029306735260, -1.449986892377240);
+        PIN_OUTPUT_CURRENT_OBCPU, 602, 2.030029306735260, -1.449986892377240);
     input_voltage_sensor =
         new OBCPUSensor<100>(PIN_INPUT_VOLTAGE_OBCPU, 603, 1, 0);
     output_voltage_sensor = new OBCPUSensor<100>(
@@ -181,7 +181,7 @@ int main(void) {
         output_voltage_sensor->read();
     });
 
-    STLIB::start(HVSCU_IP);
+    STLIB::start("00:80:e1:00:01:07", HVSCU_IP, "255.255.0.0");
 
     backend = new ServerSocket(IPV4(HVSCU_IP), 50500);
 
@@ -214,13 +214,15 @@ int main(void) {
             output_voltage_sensor->zeroing();
         });
 
+    auto not_connected{true};
+
     while (1) {
         STLIB::update();
-        // if (backend->is_connected()) {
-        //     led_operational->turn_on();
-        // } else {
-        //     led_operational->turn_off();
-        // }
+        if (backend->is_connected() && not_connected) {
+            Time::unregister_low_precision_alarm(led_id);
+            led_operational->turn_on();
+            not_connected = false;
+        }
     }
 }
 
