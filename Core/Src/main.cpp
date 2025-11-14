@@ -166,11 +166,11 @@ int main(void) {
     PFM::init(PIN_PWM_P, PIN_PWM_N, PIN_PWM_BUFFER_EN, PIN_OBCPU_RESET);
 
     input_current_sensor =
-        new OBCPUSensor<100>(PIN_INPUT_CURRENT_OBCPU, 601, 1, 0);
+        new OBCPUSensor<100>(PIN_INPUT_CURRENT_OBCPU, 601, 7.907841682434082, -12.880311965942383);
     output_current_sensor = new OBCPUSensor<100>(
         PIN_OUTPUT_CURRENT_OBCPU, 602, 2.030029306735260, -1.449986892377240);
     input_voltage_sensor =
-        new OBCPUSensor<100>(PIN_INPUT_VOLTAGE_OBCPU, 603, 1, 0);
+        new OBCPUSensor<100>(PIN_INPUT_VOLTAGE_OBCPU, 603, 294.6, 458.7);
     output_voltage_sensor = new OBCPUSensor<100>(
         PIN_OUTPUT_VOLTAGE_OBCPU, 604, 163.498533508976, -12.0197125310396);
 
@@ -195,7 +195,7 @@ int main(void) {
     packets_endpoint = new DatagramSocket(IPV4(HVSCU_IP), 50400,
                                           IPV4(CONTROL_SATION_IP), 50400);
 
-    Time::register_low_precision_alarm(100, [&]() {
+    Time::register_low_precision_alarm(1, [&]() {
         packets_endpoint->send_packet(*PFM::packet);
         packets_endpoint->send_packet(input_current_sensor->packet);
         packets_endpoint->send_packet(input_voltage_sensor->packet);
@@ -206,13 +206,13 @@ int main(void) {
     PFM::update_data();
     PFM::toggle_buffer();  // Disable buffer (is low_active)
 
-    Time::set_timeout(
-        1000, +[]() {
-            input_current_sensor->zeroing();
-            output_current_sensor->zeroing();
-            input_voltage_sensor->zeroing();
-            output_voltage_sensor->zeroing();
-        });
+    // Time::set_timeout(
+    //     1000, +[]() {
+    //         input_current_sensor->zeroing();
+    //         output_current_sensor->zeroing();
+    //         input_voltage_sensor->zeroing();
+    //         output_voltage_sensor->zeroing();
+    //     });
 
     auto not_connected{true};
 
